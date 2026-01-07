@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
-import { HeroSection } from "@/components/home/HeroSection";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { DirectorMessage } from "@/components/home/DirectorMessage";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { InstitutionsPreview } from "@/components/home/InstitutionsPreview";
@@ -9,10 +10,11 @@ import { Affiliations } from "@/components/home/Affiliations";
 const Index = () => {
   return (
     <Layout>
-      <HeroSection />
-      <WhyChooseUs />
+      <HeroCarousel />
+      <DirectorMessage />
       <ServicesPreview />
       <InstitutionsPreview />
+      <WhyChooseUs />
       <MissionVision />
       <Affiliations />
     </Layout>
