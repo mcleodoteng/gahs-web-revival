@@ -17,6 +17,16 @@ const navigation = [
   },
   { name: "Services", href: "/services" },
   { name: "Institutions", href: "/institutions" },
+  { 
+    name: "Media", 
+    href: "/gallery",
+    children: [
+      { name: "Gallery", href: "/gallery" },
+      { name: "Blog", href: "/blog" },
+      { name: "Resources", href: "/resources" },
+      { name: "Testimonials", href: "/testimonials" },
+    ]
+  },
   { name: "Contact", href: "/contact" },
 ];
 

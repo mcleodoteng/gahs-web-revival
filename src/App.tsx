@@ -11,6 +11,9 @@ import Services from "./pages/Services";
 import Institutions from "./pages/Institutions";
 import Portfolio from "./pages/Portfolio";
 import Blog from "./pages/Blog";
+import Gallery from "./pages/Gallery";
+import Resources from "./pages/Resources";
+import Testimonials from "./pages/Testimonials";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Privacy from "./pages/Privacy";
@@ -39,6 +42,9 @@ const App = () => (
             <Route path="/institutions" element={<Institutions />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/privacy" element={<Privacy />} />

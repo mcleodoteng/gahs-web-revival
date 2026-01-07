@@ -2,9 +2,11 @@ import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Mail, Phone, Users, Award, Heart } from "lucide-react";
+import { usePageContent } from "@/hooks/useCMS";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Team images
-import directorImage from "@/assets/team/dr-james-antwi.jpg";
+// Default team images as fallback
+import directorImageDefault from "@/assets/team/dr-james-antwi.jpg";
 import annabellaImage from "@/assets/team/annabella-agyeman-dankwah.jpg";
 import hannahImage from "@/assets/team/hannah-asante.jpg";
 import sandraImage from "@/assets/team/sandra-adwubi-osei.jpg";
@@ -13,66 +15,117 @@ import julietImage from "@/assets/team/juliet-atobrah-antwi.jpg";
 import janetOwusuaaImage from "@/assets/team/janet-owusuaa.jpg";
 import edmondImage from "@/assets/team/edmond-adjei-boadu.jpg";
 
-const director = {
+interface DirectorContent {
+  name: string;
+  title: string;
+  image: string;
+  message: string;
+  email: string;
+  phone: string;
+}
+
+interface TeamMember {
+  name: string;
+  title: string;
+  department: string;
+  image: string;
+}
+
+interface TeamContent {
+  sectionTitle: string;
+  sectionSubtitle: string;
+  members: TeamMember[];
+}
+
+interface HeroContent {
+  title: string;
+  subtitle: string;
+}
+
+interface QuoteContent {
+  text: string;
+  author: string;
+}
+
+const defaultDirector: DirectorContent = {
   name: "Dr. James Antwi",
   title: "Director",
-  image: directorImage,
+  image: directorImageDefault,
   message: `We are excited to share this edition of our 2024 Annual Report: The GAHS Annual Report: Are we on the cusp of something big? Our performance last year may not have matched every stakeholder's hopes or expectations, even though all major quality indicators showed gains even within the face of challenges. Yet, we believe strongly that lessons in 2024 and activities earmarked for 2025 can help us say, yes, indeed! we are on the cusp for something big. The resilience of our facilities, along with major improving conditions and expansions, point to a positive outlook for GAHS in 2025, especially as the year progresses.
 
 The Ghana Adventist Health Services is privileged to serve the Ghanaian people and we don't only count this as an opportunity but blessing from above. During the year under review, we pursued major innovations in resource mobilisations including the famous 'nobewa' concept and other financial transactions that can help improve or transform our facilities. We embarked on major projects, institutional reforms, establishment of new facilities, missionary activities and evangelism to win souls for Christ.`,
+  email: "director@gahs.org.gh",
+  phone: "+233322392578"
 };
 
-const teamMembers = [
-  {
-    name: "Mrs. Annabella Agyeman Dankwah",
-    title: "Deputy Director",
-    department: "Administration",
-    image: annabellaImage,
-  },
-  {
-    name: "Hannah Asante",
-    title: "Head",
-    department: "Nursing Services",
-    image: hannahImage,
-  },
-  {
-    name: "Sandra Adwubi Osei",
-    title: "Manager",
-    department: "Human Resources",
-    image: sandraImage,
-  },
-  {
-    name: "Janet Boateng",
-    title: "Head",
-    department: "Finance & Accounts",
-    image: janetBoatengImage,
-  },
-  {
-    name: "Juliet Atobrah Antwi",
-    title: "Coordinator",
-    department: "Quality Assurance",
-    image: julietImage,
-  },
-  {
-    name: "Janet Owusuaa",
-    title: "Manager",
-    department: "Procurement",
-    image: janetOwusuaaImage,
-  },
-  {
-    name: "Edmond Adjei Boadu",
-    title: "IT Manager",
-    department: "Information Technology",
-    image: edmondImage,
-  },
+const defaultTeamMembers: TeamMember[] = [
+  { name: "Mrs. Annabella Agyeman Dankwah", title: "Deputy Director", department: "Administration", image: annabellaImage },
+  { name: "Hannah Asante", title: "Head", department: "Nursing Services", image: hannahImage },
+  { name: "Sandra Adwubi Osei", title: "Manager", department: "Human Resources", image: sandraImage },
+  { name: "Janet Boateng", title: "Head", department: "Finance & Accounts", image: janetBoatengImage },
+  { name: "Juliet Atobrah Antwi", title: "Coordinator", department: "Quality Assurance", image: julietImage },
+  { name: "Janet Owusuaa", title: "Manager", department: "Procurement", image: janetOwusuaaImage },
+  { name: "Edmond Adjei Boadu", title: "IT Manager", department: "Information Technology", image: edmondImage },
 ];
 
 const Leadership = () => {
+  const { isLoading, getSection } = usePageContent("leadership");
+
+  const heroContent = getSection<HeroContent>("hero", {
+    title: "Leadership Team",
+    subtitle: "Meet the dedicated professionals leading GAHS towards excellence in healthcare delivery"
+  })!;
+
+  const directorContent = getSection<DirectorContent>("director", defaultDirector)!;
+  const teamContent = getSection<TeamContent>("team_members", {
+    sectionTitle: "Meet the GAHS Secretariat Team",
+    sectionSubtitle: "Dedicated professionals working together to advance healthcare across Ghana",
+    members: defaultTeamMembers
+  })!;
+
+  const quoteContent = getSection<QuoteContent>("quote", {
+    text: "The right hand is used to open doors through which the body may find entrance. This is the part the medical missionary work is to act.",
+    author: "Ellen G. White, Ministry of Healing"
+  })!;
+
+  // Use default images as fallback if CMS image is empty or invalid
+  const getDirectorImage = () => {
+    if (directorContent.image && directorContent.image.startsWith("http")) {
+      return directorContent.image;
+    }
+    return directorImageDefault;
+  };
+
+  const getTeamMemberImage = (member: TeamMember, index: number) => {
+    if (member.image && member.image.startsWith("http")) {
+      return member.image;
+    }
+    return defaultTeamMembers[index]?.image || "";
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="py-20">
+          <div className="container">
+            <Skeleton className="h-48 w-full mb-8" />
+            <div className="grid lg:grid-cols-5 gap-8">
+              <Skeleton className="lg:col-span-2 h-96" />
+              <Skeleton className="lg:col-span-3 h-96" />
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const teamMembers = teamContent.members || defaultTeamMembers;
+
   return (
     <Layout>
       <PageHero
-        title="Leadership Team"
-        subtitle="Meet the dedicated professionals leading GAHS towards excellence in healthcare delivery"
+        title={heroContent.title}
+        subtitle={heroContent.subtitle}
       />
 
       {/* Director's Message Section */}
@@ -93,23 +146,23 @@ const Leadership = () => {
               <Card className="overflow-hidden border-0 shadow-elegant">
                 <div className="aspect-[4/5] overflow-hidden">
                   <img 
-                    src={director.image} 
-                    alt={director.name}
+                    src={getDirectorImage()} 
+                    alt={directorContent.name}
                     className="w-full h-full object-cover object-top"
                   />
                 </div>
                 <CardContent className="p-6 text-center bg-background">
-                  <h3 className="text-2xl font-bold text-foreground">{director.name}</h3>
-                  <p className="text-lg text-primary font-semibold mt-1">{director.title}</p>
+                  <h3 className="text-2xl font-bold text-foreground">{directorContent.name}</h3>
+                  <p className="text-lg text-primary font-semibold mt-1">{directorContent.title}</p>
                   <p className="text-muted-foreground mt-2">Ghana Adventist Health Services</p>
                 </CardContent>
                 <div className="p-4 bg-primary text-primary-foreground">
                   <div className="flex items-center justify-center gap-6">
-                    <a href="mailto:director@gahs.org.gh" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <a href={`mailto:${directorContent.email || "director@gahs.org.gh"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <Mail className="h-5 w-5" />
                       <span className="text-sm">Email</span>
                     </a>
-                    <a href="tel:+233322392578" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <a href={`tel:${directorContent.phone || "+233322392578"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <Phone className="h-5 w-5" />
                       <span className="text-sm">Call</span>
                     </a>
@@ -124,15 +177,15 @@ const Leadership = () => {
                 <CardContent className="p-8 md:p-10">
                   <Quote className="h-12 w-12 text-primary/30 mb-6" />
                   <div className="prose prose-lg max-w-none">
-                    {director.message.split('\n\n').map((paragraph, index) => (
+                    {directorContent.message.split('\n\n').map((paragraph, index) => (
                       <p key={index} className="text-muted-foreground leading-relaxed mb-6 last:mb-0">
                         {paragraph}
                       </p>
                     ))}
                   </div>
                   <div className="mt-8 pt-6 border-t border-border">
-                    <p className="text-foreground font-semibold">{director.name}</p>
-                    <p className="text-primary">{director.title}, GAHS</p>
+                    <p className="text-foreground font-semibold">{directorContent.name}</p>
+                    <p className="text-primary">{directorContent.title}, GAHS</p>
                   </div>
                 </CardContent>
               </Card>
@@ -190,10 +243,10 @@ const Leadership = () => {
               Our Team
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
-              Meet the GAHS Secretariat Team
+              {teamContent.sectionTitle}
             </h2>
             <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-              Dedicated professionals working together to advance healthcare across Ghana
+              {teamContent.sectionSubtitle}
             </p>
           </div>
 
@@ -204,7 +257,7 @@ const Leadership = () => {
                   {/* Photo */}
                   <div className="aspect-square overflow-hidden">
                     <img 
-                      src={member.image} 
+                      src={getTeamMemberImage(member, index)} 
                       alt={member.name}
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     />
@@ -229,11 +282,10 @@ const Leadership = () => {
           <div className="max-w-4xl mx-auto text-center">
             <Quote className="h-12 w-12 mx-auto mb-6 opacity-50" />
             <blockquote className="text-xl md:text-2xl font-medium leading-relaxed mb-6">
-              "The right hand is used to open doors through which the body may find entrance. 
-              This is the part the medical missionary work is to act."
+              "{quoteContent.text}"
             </blockquote>
             <cite className="text-primary-foreground/80 text-sm">
-              — Ellen G. White, Ministry of Healing
+              — {quoteContent.author}
             </cite>
           </div>
         </div>

@@ -6,6 +6,8 @@ import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { InstitutionsPreview } from "@/components/home/InstitutionsPreview";
 import { MissionVision } from "@/components/home/MissionVision";
 import { Affiliations } from "@/components/home/Affiliations";
+import { TestimonialsPreview } from "@/components/home/TestimonialsPreview";
+import { GalleryPreview } from "@/components/home/GalleryPreview";
 
 const Index = () => {
   return (
@@ -15,6 +17,8 @@ const Index = () => {
       <ServicesPreview />
       <InstitutionsPreview />
       <WhyChooseUs />
+      <GalleryPreview />
+      <TestimonialsPreview />
       <MissionVision />
       <Affiliations />
     </Layout>

@@ -38,17 +38,25 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Subtitle", type: "textarea", placeholder: "Supporting text" },
         { label: "Button Text", type: "text", placeholder: "CTA button text" },
         { label: "Button Link", type: "text", placeholder: "/services" },
-        { label: "Background Image URL", type: "text", placeholder: "Image URL" },
+        { label: "Background Image URL", type: "image", placeholder: "Image URL" },
       ],
       director_message: [
-        { label: "Title", type: "text", placeholder: "Director's Message" },
+        { label: "Name", type: "text", placeholder: "Dr. James Antwi" },
+        { label: "Title", type: "text", placeholder: "Director, GAHS" },
         { label: "Short Message", type: "textarea", placeholder: "Brief message for homepage" },
-        { label: "Director Name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Director Title", type: "text", placeholder: "Executive Director" },
+        { label: "Tagline", type: "text", placeholder: "Closing tagline" },
       ],
-      services_preview: [
-        { label: "Section Title", type: "text", placeholder: "Our Services" },
-        { label: "Section Subtitle", type: "textarea", placeholder: "Description" },
+      why_choose: [
+        { label: "Badge", type: "text", placeholder: "Why Choose GAHS" },
+        { label: "Title", type: "text", placeholder: "Section title" },
+        { label: "Subtitle", type: "text", placeholder: "Section subtitle" },
+        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"icon": "Network", "title": "Title", "description": "Description"}\n]' },
+      ],
+      gallery_preview: [
+        { label: "Images JSON", type: "textarea", placeholder: '[\n  {"id": "1", "src": "URL", "title": "Title", "category": "Category"}\n]' },
+      ],
+      testimonials_preview: [
+        { label: "Testimonials JSON", type: "textarea", placeholder: '[\n  {"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5, "image": "URL"}\n]' },
       ],
     },
   },
@@ -58,19 +66,27 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       hero: [
         { label: "Title", type: "text", placeholder: "About GAHS" },
         { label: "Subtitle", type: "textarea", placeholder: "Learn about our organization" },
-        { label: "Badge Text", type: "text", placeholder: "Our Story" },
+        { label: "Badge", type: "text", placeholder: "Our Story" },
       ],
       history: [
         { label: "Title", type: "text", placeholder: "Our History" },
-        { label: "Content", type: "textarea", placeholder: "History content..." },
+        { label: "Paragraphs JSON", type: "textarea", placeholder: '["Paragraph 1", "Paragraph 2"]' },
       ],
       mission: [
         { label: "Title", type: "text", placeholder: "Our Mission" },
-        { label: "Content", type: "textarea", placeholder: "Mission statement..." },
+        { label: "Description", type: "textarea", placeholder: "Mission statement..." },
       ],
       vision: [
         { label: "Title", type: "text", placeholder: "Our Vision" },
-        { label: "Content", type: "textarea", placeholder: "Vision statement..." },
+        { label: "Description", type: "textarea", placeholder: "Vision statement..." },
+      ],
+      quote: [
+        { label: "Text", type: "textarea", placeholder: "Quote text" },
+        { label: "Author", type: "text", placeholder: "Author name" },
+      ],
+      why_choose: [
+        { label: "Title", type: "text", placeholder: "Section title" },
+        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"title": "Title", "description": "Description"}\n]' },
       ],
     },
   },
@@ -83,12 +99,20 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
       director: [
         { label: "Name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Title", type: "text", placeholder: "Executive Director" },
-        { label: "Bio", type: "textarea", placeholder: "Full biography..." },
-        { label: "Image URL", type: "text", placeholder: "Image URL" },
+        { label: "Title", type: "text", placeholder: "Director" },
+        { label: "Image", type: "image", placeholder: "Director photo URL" },
+        { label: "Message", type: "textarea", placeholder: "Full message..." },
+        { label: "Email", type: "text", placeholder: "director@gahs.org.gh" },
+        { label: "Phone", type: "text", placeholder: "+233322392578" },
       ],
       team_members: [
-        { label: "Members JSON", type: "textarea", placeholder: '[\n  {\n    "name": "Name",\n    "title": "Title",\n    "image": "URL"\n  }\n]' },
+        { label: "Section Title", type: "text", placeholder: "Meet the GAHS Secretariat Team" },
+        { label: "Section Subtitle", type: "text", placeholder: "Team description" },
+        { label: "Members JSON", type: "textarea", placeholder: '[\n  {"name": "Name", "title": "Title", "department": "Dept", "image": "URL"}\n]' },
+      ],
+      quote: [
+        { label: "Text", type: "textarea", placeholder: "Quote text" },
+        { label: "Author", type: "text", placeholder: "Author name" },
       ],
     },
   },
@@ -98,21 +122,40 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       hero: [
         { label: "Title", type: "text", placeholder: "Our Services" },
         { label: "Subtitle", type: "textarea", placeholder: "What we offer" },
+        { label: "Badge", type: "text", placeholder: "Our Services" },
       ],
       services_list: [
-        { label: "Services JSON", type: "textarea", placeholder: '[\n  {\n    "title": "Service Name",\n    "description": "Description",\n    "icon": "icon-name"\n  }\n]' },
+        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"icon": "Target", "title": "Service Name", "description": "Description"}\n]' },
+      ],
+      cta: [
+        { label: "Title", type: "text", placeholder: "Partner With Us" },
+        { label: "Description", type: "textarea", placeholder: "CTA description" },
+        { label: "Button Text", type: "text", placeholder: "Get in Touch" },
+        { label: "Button Link", type: "text", placeholder: "/contact" },
       ],
     },
   },
-  institutions: {
-    title: "Institutions Page",
+  gallery: {
+    title: "Gallery Page",
     fields: {
-      hero: [
-        { label: "Title", type: "text", placeholder: "Our Institutions" },
-        { label: "Subtitle", type: "textarea", placeholder: "Healthcare facilities" },
+      gallery_images: [
+        { label: "Images JSON", type: "textarea", placeholder: '[\n  {"id": "1", "src": "URL", "title": "Title", "category": "Category", "description": "Description"}\n]' },
       ],
-      institutions_table: [
-        { label: "Institutions JSON", type: "textarea", placeholder: '[\n  {\n    "name": "Hospital Name",\n    "type": "Type",\n    "location": "Location"\n  }\n]' },
+    },
+  },
+  resources: {
+    title: "Resources Page",
+    fields: {
+      resources_list: [
+        { label: "Resources JSON", type: "textarea", placeholder: '[\n  {"id": "1", "title": "Title", "description": "Desc", "category": "Category", "type": "pdf", "downloadUrl": "URL", "date": "January 2025", "fileSize": "4.2 MB"}\n]' },
+      ],
+    },
+  },
+  testimonials: {
+    title: "Testimonials Page",
+    fields: {
+      testimonials_list: [
+        { label: "Testimonials JSON", type: "textarea", placeholder: '[\n  {"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5, "image": "URL"}\n]' },
       ],
     },
   },
@@ -122,6 +165,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       hero: [
         { label: "Title", type: "text", placeholder: "Contact Us" },
         { label: "Subtitle", type: "textarea", placeholder: "Get in touch" },
+        { label: "Badge", type: "text", placeholder: "Get In Touch" },
       ],
       contact_info: [
         { label: "Address", type: "textarea", placeholder: "Full address" },
@@ -135,7 +179,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Privacy Policy",
     fields: {
       content: [
-        { label: "Full Content", type: "textarea", placeholder: "Privacy policy content (supports HTML)" },
+        { label: "Full Content", type: "textarea", placeholder: "Privacy policy content" },
       ],
     },
   },
@@ -143,7 +187,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Terms & Conditions",
     fields: {
       content: [
-        { label: "Full Content", type: "textarea", placeholder: "Terms content (supports HTML)" },
+        { label: "Full Content", type: "textarea", placeholder: "Terms content" },
       ],
     },
   },
