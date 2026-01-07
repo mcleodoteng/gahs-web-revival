@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { usePageContent } from "@/hooks/useCMS";
 import directorImage from "@/assets/team/dr-james-antwi.jpg";
 
+interface DirectorContentRaw {
+  director_name?: string;
+  name?: string;
+  director_title?: string;
+  title?: string;
+  short_message?: string;
+  shortMessage?: string;
+  tagline?: string;
+}
+
 interface DirectorContent {
   name: string;
   title: string;
@@ -16,12 +26,15 @@ interface DirectorContent {
 export const DirectorMessage = () => {
   const { getSection } = usePageContent("home");
   
-  const directorContent = getSection<DirectorContent>("director_message", {
-    name: "Dr. James Antwi",
-    title: "Director, GAHS",
-    shortMessage: "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
-    tagline: "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
-  })!;
+  const rawContent = getSection<DirectorContentRaw>("director_message", {});
+  
+  // Normalize field names (CMS uses snake_case, component uses camelCase)
+  const directorContent: DirectorContent = {
+    name: rawContent?.director_name || rawContent?.name || "Dr. James Antwi",
+    title: rawContent?.director_title || rawContent?.title || "Director, GAHS",
+    shortMessage: rawContent?.short_message || rawContent?.shortMessage || "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
+    tagline: rawContent?.tagline || "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
+  };
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-primary-light/40 via-background to-secondary-light/30 overflow-hidden">
