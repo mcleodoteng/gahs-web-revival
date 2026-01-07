@@ -7,6 +7,7 @@ import gahsLogo from "@/assets/gahs-logo.jpeg";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
+  { name: "Leadership", href: "/leadership" },
   { name: "Services", href: "/services" },
   { name: "Institutions", href: "/institutions" },
   { name: "Portfolio", href: "/portfolio" },
