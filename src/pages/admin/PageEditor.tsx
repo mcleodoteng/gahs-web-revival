@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -25,9 +24,13 @@ import {
   EyeOff,
   GripVertical,
   ExternalLink,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useCMS, PageContent } from "@/hooks/useCMS";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const pageConfig: Record<string, { title: string; fields: Record<string, { label: string; type: string; placeholder?: string }[]> }> = {
   home: {
@@ -193,9 +196,84 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
   },
 };
 
+interface ImageUploadProps {
+  value: string;
+  onChange: (url: string) => void;
+  placeholder?: string;
+}
+
+const ImageUploadField = ({ value, onChange, placeholder }: ImageUploadProps) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+    const { error } = await supabase.storage.from("cms-media").upload(fileName, file);
+
+    if (error) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(fileName);
+      onChange(urlData.publicUrl);
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    }
+    setIsUploading(false);
+    e.target.value = "";
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Label htmlFor="image-upload" className="cursor-pointer">
+          <Button type="button" variant="outline" size="icon" disabled={isUploading} asChild>
+            <span>
+              {isUploading ? (
+                <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+            </span>
+          </Button>
+        </Label>
+        <Input
+          id="image-upload"
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleUpload}
+        />
+      </div>
+      {value && (
+        <div className="relative w-32 h-32 rounded-lg overflow-hidden border bg-muted">
+          <img src={value} alt="Preview" className="w-full h-full object-cover" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PageEditor = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { content, isLoading, updateContent, createContent, deleteContent } = useCMS();
   const [editingSection, setEditingSection] = useState<PageContent | null>(null);
   const [editFormData, setEditFormData] = useState<Record<string, string>>({});
@@ -225,7 +303,8 @@ const PageEditor = () => {
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
         const key = field.label.toLowerCase().replace(/ /g, "_");
-        formData[key] = (section.content as Record<string, string>)[key] || "";
+        const contentValue = (section.content as Record<string, unknown>)[key];
+        formData[key] = typeof contentValue === "string" ? contentValue : JSON.stringify(contentValue, null, 2) || "";
       });
     }
     setEditFormData(formData);
@@ -233,7 +312,29 @@ const PageEditor = () => {
 
   const handleSaveSection = async () => {
     if (!editingSection) return;
-    await updateContent(editingSection.id, { content: editFormData });
+    
+    // Parse JSON fields back to objects
+    const parsedContent: Record<string, unknown> = {};
+    const sectionConfig = config.fields[editingSection.section_key];
+    
+    if (sectionConfig) {
+      sectionConfig.forEach((field) => {
+        const key = field.label.toLowerCase().replace(/ /g, "_");
+        const value = editFormData[key] || "";
+        
+        if (field.label.toLowerCase().includes("json") || field.label.toLowerCase().includes("paragraphs") || field.label.toLowerCase().includes("items") || field.label.toLowerCase().includes("members") || field.label.toLowerCase().includes("testimonials") || field.label.toLowerCase().includes("images") || field.label.toLowerCase().includes("resources")) {
+          try {
+            parsedContent[key] = JSON.parse(value);
+          } catch {
+            parsedContent[key] = value;
+          }
+        } else {
+          parsedContent[key] = value;
+        }
+      });
+    }
+    
+    await updateContent(editingSection.id, { content: parsedContent as Record<string, string> });
     setEditingSection(null);
     setEditFormData({});
   };
@@ -404,12 +505,12 @@ const PageEditor = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm text-muted-foreground">
-                    {Object.entries(section.content as Record<string, string>)
+                    {Object.entries(section.content as Record<string, unknown>)
                       .slice(0, 3)
                       .map(([key, value]) => (
                         <p key={key} className="truncate">
                           <span className="font-medium">{key.replace(/_/g, " ")}:</span>{" "}
-                          {typeof value === "string" ? value.substring(0, 100) : "..."}
+                          {typeof value === "string" ? value.substring(0, 100) : Array.isArray(value) ? `[${value.length} items]` : "..."}
                         </p>
                       ))}
                   </div>
@@ -440,14 +541,20 @@ const PageEditor = () => {
                   return (
                     <div key={key} className="space-y-2">
                       <Label>{field.label}</Label>
-                      {field.type === "textarea" ? (
+                      {field.type === "image" ? (
+                        <ImageUploadField
+                          value={editFormData[key] || ""}
+                          onChange={(url) => setEditFormData({ ...editFormData, [key]: url })}
+                          placeholder={field.placeholder}
+                        />
+                      ) : field.type === "textarea" ? (
                         <Textarea
                           value={editFormData[key] || ""}
                           onChange={(e) =>
                             setEditFormData({ ...editFormData, [key]: e.target.value })
                           }
                           placeholder={field.placeholder}
-                          rows={field.label.includes("JSON") || field.label.includes("Content") ? 10 : 4}
+                          rows={field.label.includes("JSON") || field.label.includes("Content") || field.label.includes("Message") ? 10 : 4}
                         />
                       ) : (
                         <Input
