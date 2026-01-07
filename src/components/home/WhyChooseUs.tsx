@@ -1,70 +1,104 @@
+import { motion } from "framer-motion";
 import { Network, Heart, GraduationCap, Users, Shield } from "lucide-react";
 
 const reasons = [
   {
     icon: Network,
     title: "Comprehensive Healthcare Network",
-    description: "We operate an extensive network of hospitals, clinics, a medical store, and training institutions strategically located across the country. This integrated system ensures that individuals and communities, whether in urban centers or rural areas, have access to quality healthcare and essential medical supplies.",
+    description: "Extensive network of hospitals, clinics, and training institutions strategically located across Ghana for accessible quality healthcare.",
   },
   {
     icon: Heart,
     title: "Care Rooted in Christian Values",
-    description: "At GAHS, we believe every human being deserves to be treated with compassion, dignity and respect. Our Christian principles inspire us to serve selflessly, act with integrity, and offer hope alongside healing. We strive to meet physical needs while nurturing emotional and spiritual well-being.",
+    description: "Every person deserves compassion, dignity and respect. Our Christian principles inspire us to serve selflessly and offer hope alongside healing.",
   },
   {
     icon: GraduationCap,
     title: "Excellence in Care and Training",
-    description: "We are committed to delivering the highest standards of healthcare while shaping the future of medical services in Ghana. Our training institutions equip healthcare professionals with the skills, ethics, and compassion needed to serve effectively.",
+    description: "Highest standards of healthcare while shaping the future of medical services through our training institutions.",
   },
   {
     icon: Users,
     title: "Top Professionals",
-    description: "We are proud to be home to a dedicated team of highly qualified doctors, nurses, pharmacists, technicians, and healthcare educators. Our professionals are not only well trained but are also committed to ongoing learning and development.",
+    description: "Dedicated team of highly qualified doctors, nurses, pharmacists, and healthcare educators committed to ongoing excellence.",
   },
   {
     icon: Shield,
     title: "Trusted Legacy",
-    description: "For decades, we have stood as a pillar of dependable, compassionate healthcare in Ghana. Our history is built on a consistent commitment to quality service, ethical practice, and respect for every individual we serve. This enduring trust inspires us to uphold our reputation.",
+    description: "Decades of dependable, compassionate healthcare built on quality service, ethical practice, and respect for all.",
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 },
+  },
+};
+
 export const WhyChooseUs = () => {
   return (
-    <section className="py-20 section-light">
+    <section className="py-16 md:py-20 section-light overflow-hidden">
       <div className="container">
         {/* Section header */}
-        <div className="max-w-3xl mx-auto text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="max-w-3xl mx-auto text-center mb-12"
+        >
           <span className="inline-block px-4 py-1.5 rounded-full bg-primary-light text-primary text-sm font-medium mb-4">
             Why Choose GAHS
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Delivering Exceptional Healthcare{" "}
+            Exceptional Healthcare{" "}
             <span className="text-gradient">with Compassion</span>
           </h2>
           <p className="text-muted-foreground text-lg">
-            Our commitment to quality healthcare is guided by Christian values, professional excellence, and a genuine calling to serve.
+            Quality healthcare guided by Christian values and professional excellence.
           </p>
-        </div>
+        </motion.div>
 
         {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+        >
           {reasons.map((reason, index) => (
-            <div
+            <motion.div
               key={reason.title}
-              className={`why-card ${index === 4 ? "md:col-span-2 lg:col-span-1" : ""}`}
+              variants={itemVariants}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className={`why-card group ${index === 4 ? "md:col-span-2 lg:col-span-1" : ""}`}
             >
-              <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center mb-5">
-                <reason.icon className="h-7 w-7 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
+                <reason.icon className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 {reason.title}
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {reason.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
