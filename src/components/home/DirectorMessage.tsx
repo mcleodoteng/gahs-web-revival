@@ -3,10 +3,25 @@ import { ArrowRight, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { usePageContent } from "@/hooks/useCMS";
 import directorImage from "@/assets/team/dr-james-antwi.jpg";
 
+interface DirectorContent {
+  name: string;
+  title: string;
+  shortMessage: string;
+  tagline: string;
+}
+
 export const DirectorMessage = () => {
-  const shortMessage = `We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.`;
+  const { getSection } = usePageContent("home");
+  
+  const directorContent = getSection<DirectorContent>("director_message", {
+    name: "Dr. James Antwi",
+    title: "Director, GAHS",
+    shortMessage: "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
+    tagline: "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
+  })!;
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-primary-light/40 via-background to-secondary-light/30 overflow-hidden">
@@ -44,15 +59,15 @@ export const DirectorMessage = () => {
                 <div className="aspect-[4/5] overflow-hidden">
                   <motion.img
                     src={directorImage}
-                    alt="Dr. James Antwi - Director, GAHS"
+                    alt={`${directorContent.name} - ${directorContent.title}`}
                     className="w-full h-full object-cover object-top"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.4 }}
                   />
                 </div>
                 <CardContent className="p-5 text-center bg-gradient-to-r from-primary to-primary-dark text-primary-foreground">
-                  <h3 className="text-xl font-bold">Dr. James Antwi</h3>
-                  <p className="text-primary-foreground/80 text-sm">Director, GAHS</p>
+                  <h3 className="text-xl font-bold">{directorContent.name}</h3>
+                  <p className="text-primary-foreground/80 text-sm">{directorContent.title}</p>
                 </CardContent>
               </Card>
             </div>
@@ -69,15 +84,15 @@ export const DirectorMessage = () => {
               <CardContent className="p-8 md:p-10">
                 <Quote className="h-10 w-10 text-primary/30 mb-4" />
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  {shortMessage}
+                  {directorContent.shortMessage}
                 </p>
                 <p className="text-foreground font-medium mb-6">
-                  The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above.
+                  {directorContent.tagline}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-4 border-t border-border">
                   <div>
-                    <p className="font-semibold text-foreground">Dr. James Antwi</p>
-                    <p className="text-sm text-muted-foreground">Director, GAHS</p>
+                    <p className="font-semibold text-foreground">{directorContent.name}</p>
+                    <p className="text-sm text-muted-foreground">{directorContent.title}</p>
                   </div>
                   <Link to="/leadership">
                     <Button className="gap-2 group bg-primary hover:bg-primary-dark">

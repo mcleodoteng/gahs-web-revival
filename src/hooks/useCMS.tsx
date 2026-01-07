@@ -165,8 +165,10 @@ export const usePageContent = (pageSlug: string) => {
     fetchPageContent();
   }, [pageSlug]);
 
-  const getSection = (sectionKey: string) => {
-    return sections.find((s) => s.section_key === sectionKey)?.content;
+  const getSection = <T = Record<string, unknown>>(sectionKey: string, defaultValue?: T): T | undefined => {
+    const section = sections.find((s) => s.section_key === sectionKey);
+    if (!section) return defaultValue;
+    return section.content as T;
   };
 
   return { sections, isLoading, getSection };
