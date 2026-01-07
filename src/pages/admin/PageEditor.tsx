@@ -162,6 +162,14 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
     },
   },
+  blog: {
+    title: "Blog Page",
+    fields: {
+      posts: [
+        { label: "Posts JSON", type: "textarea", placeholder: '[\n  {"id": "1", "title": "Title", "excerpt": "Excerpt", "category": "Category", "author": "Author", "date": "Date", "readTime": "5 min read"}\n]' },
+      ],
+    },
+  },
   contact: {
     title: "Contact Page",
     fields: {

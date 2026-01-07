@@ -1,10 +1,12 @@
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { MapPin, Phone, Mail, Clock, Send, Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, Facebook, Twitter, Linkedin, Youtube, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeroContent {
   title: string;
@@ -21,6 +23,8 @@ interface ContactInfoContent {
 
 const ContactPage = () => {
   const { isLoading, getSection } = usePageContent("contact");
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -43,9 +47,36 @@ const ContactPage = () => {
     officeHours: "Monday - Friday: 8:00 AM - 5:00 PM\nSaturday: 9:00 AM - 12:00 PM"
   })!;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from("contact_messages").insert({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || null,
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message Sent",
+        description: "Thank you for contacting us. We'll get back to you soon!",
+      });
+
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -238,9 +269,13 @@ const ContactPage = () => {
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary-dark gap-2">
-                    <Send className="h-4 w-4" />
-                    Send Message
+                  <Button type="submit" size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary-dark gap-2" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </div>
