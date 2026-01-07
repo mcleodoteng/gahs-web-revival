@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
@@ -7,24 +8,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const { user, isAdmin, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user && isAdmin) {
+      navigate("/admin");
+    }
+  }, [user, isAdmin, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Placeholder for auth logic
-    setTimeout(() => setIsLoading(false), 1500);
+    const { error } = await signIn(loginEmail, loginPassword);
+    if (error) {
+      toast({ title: "Login Failed", description: error.message, variant: "destructive" });
+    }
+    setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Placeholder for auth logic
-    setTimeout(() => setIsLoading(false), 1500);
+    const { error } = await signUp(signupEmail, signupPassword);
+    if (error) {
+      toast({ title: "Signup Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Account created! You can now log in." });
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -82,6 +106,8 @@ const Auth = () => {
                             placeholder="you@gahs.org.gh"
                             className="pl-10"
                             required
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
                           />
                         </div>
                       </div>
@@ -95,6 +121,8 @@ const Auth = () => {
                             placeholder="••••••••"
                             className="pl-10 pr-10"
                             required
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
                           />
                           <button
                             type="button"
@@ -161,6 +189,8 @@ const Auth = () => {
                             placeholder="you@gahs.org.gh"
                             className="pl-10"
                             required
+                            value={signupEmail}
+                            onChange={(e) => setSignupEmail(e.target.value)}
                           />
                         </div>
                       </div>
@@ -174,6 +204,8 @@ const Auth = () => {
                             placeholder="••••••••"
                             className="pl-10 pr-10"
                             required
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
                           />
                           <button
                             type="button"
