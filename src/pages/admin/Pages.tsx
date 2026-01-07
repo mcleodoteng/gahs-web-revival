@@ -37,6 +37,30 @@ const pages = [
     sections: ["hero", "filter_options", "institutions_table"]
   },
   { 
+    name: "Gallery", 
+    slug: "gallery", 
+    description: "Photo gallery with categories",
+    sections: ["gallery_images"]
+  },
+  { 
+    name: "Resources", 
+    slug: "resources", 
+    description: "Downloadable resources and documents",
+    sections: ["resources_list"]
+  },
+  { 
+    name: "Testimonials", 
+    slug: "testimonials", 
+    description: "User testimonials and reviews",
+    sections: ["testimonials_list"]
+  },
+  { 
+    name: "Blog", 
+    slug: "blog", 
+    description: "Blog posts and articles",
+    sections: ["posts"]
+  },
+  { 
     name: "Contact", 
     slug: "contact", 
     description: "Contact information, address, and form",
