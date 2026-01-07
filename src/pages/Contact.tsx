@@ -3,8 +3,25 @@ import { PageHero } from "@/components/shared/PageHero";
 import { MapPin, Phone, Mail, Clock, Send, Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { usePageContent } from "@/hooks/useCMS";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface HeroContent {
+  title: string;
+  subtitle: string;
+  badge: string;
+}
+
+interface ContactInfoContent {
+  address: string;
+  phone: string;
+  email: string;
+  officeHours: string;
+}
 
 const ContactPage = () => {
+  const { isLoading, getSection } = usePageContent("contact");
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,18 +30,43 @@ const ContactPage = () => {
     message: "",
   });
 
+  const heroContent = getSection<HeroContent>("hero", {
+    title: "Contact Us",
+    subtitle: "Get in touch with us for inquiries, partnerships, or support. We're here to help.",
+    badge: "Get In Touch"
+  })!;
+
+  const contactInfo = getSection<ContactInfoContent>("contact_info", {
+    address: "GAHS Secretariat\nKumasi, Ghana",
+    phone: "+233 (0) 00 000 0000",
+    email: "info@gahs.org.gh",
+    officeHours: "Monday - Friday: 8:00 AM - 5:00 PM\nSaturday: 9:00 AM - 12:00 PM"
+  })!;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
     console.log(formData);
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="py-20">
+          <div className="container">
+            <Skeleton className="h-48 w-full mb-8" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <PageHero
-        title="Contact Us"
-        subtitle="Get in touch with us for inquiries, partnerships, or support. We're here to help."
-        badge="Get In Touch"
+        title={heroContent.title}
+        subtitle={heroContent.subtitle}
+        badge={heroContent.badge}
       />
 
       {/* Contact Section */}
@@ -49,9 +91,8 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Address</h3>
-                    <p className="text-muted-foreground text-sm">
-                      GAHS Secretariat<br />
-                      Kumasi, Ghana
+                    <p className="text-muted-foreground text-sm whitespace-pre-line">
+                      {contactInfo.address}
                     </p>
                   </div>
                 </div>
@@ -63,7 +104,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Phone</h3>
                     <p className="text-muted-foreground text-sm">
-                      +233 (0) 00 000 0000
+                      {contactInfo.phone}
                     </p>
                   </div>
                 </div>
@@ -75,7 +116,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Email</h3>
                     <p className="text-muted-foreground text-sm">
-                      info@gahs.org.gh
+                      {contactInfo.email}
                     </p>
                   </div>
                 </div>
@@ -86,9 +127,8 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Office Hours</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Monday - Friday: 8:00 AM - 5:00 PM<br />
-                      Saturday: 9:00 AM - 12:00 PM
+                    <p className="text-muted-foreground text-sm whitespace-pre-line">
+                      {contactInfo.officeHours}
                     </p>
                   </div>
                 </div>
