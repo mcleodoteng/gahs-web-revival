@@ -23,8 +23,22 @@ interface ServiceItem {
   description: string;
 }
 
+interface ServicesContentRaw {
+  items?: ServiceItem[];
+  services?: ServiceItem[];
+}
+
 interface ServicesContent {
   items: ServiceItem[];
+}
+
+interface CTAContentRaw {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  button_text?: string;
+  buttonLink?: string;
+  button_link?: string;
 }
 
 interface CTAContent {
@@ -43,16 +57,29 @@ const ServicesPage = () => {
     badge: "Our Services"
   })!;
 
-  const servicesContent = getSection<ServicesContent>("services_list", {
+  const servicesRaw = getSection<ServicesContentRaw>("services_list", {
     items: []
   })!;
+  
+  // Normalize: CMS may store as 'services' array instead of 'items'
+  const servicesContent: ServicesContent = {
+    items: servicesRaw.items || servicesRaw.services || []
+  };
 
-  const ctaContent = getSection<CTAContent>("cta", {
+  const ctaRaw = getSection<CTAContentRaw>("cta", {
     title: "Partner With Us",
     description: "Join us in our mission to provide compassionate, quality healthcare across Ghana.",
     buttonText: "Get in Touch",
     buttonLink: "/contact"
   })!;
+  
+  // Normalize field names
+  const ctaContent: CTAContent = {
+    title: ctaRaw.title || "Partner With Us",
+    description: ctaRaw.description || "",
+    buttonText: ctaRaw.buttonText || ctaRaw.button_text || "Get in Touch",
+    buttonLink: ctaRaw.buttonLink || ctaRaw.button_link || "/contact"
+  };
 
   if (isLoading) {
     return (

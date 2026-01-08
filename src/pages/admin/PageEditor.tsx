@@ -32,34 +32,36 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const pageConfig: Record<string, { title: string; fields: Record<string, { label: string; type: string; placeholder?: string }[]> }> = {
+// Maps section keys to their field configurations with actual CMS content keys
+const pageConfig: Record<string, { title: string; fields: Record<string, { label: string; key: string; type: string; placeholder?: string }[]> }> = {
   home: {
     title: "Home Page",
     fields: {
       hero: [
-        { label: "Title", type: "text", placeholder: "Main headline" },
-        { label: "Subtitle", type: "textarea", placeholder: "Supporting text" },
-        { label: "Button Text", type: "text", placeholder: "CTA button text" },
-        { label: "Button Link", type: "text", placeholder: "/services" },
-        { label: "Background Image URL", type: "image", placeholder: "Image URL" },
+        { label: "Slides (JSON)", key: "slides", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "highlight": "Highlight", "description": "Description", "image": "URL"}]' },
+        { label: "Stats (JSON)", key: "stats", type: "textarea", placeholder: '[{"icon": "Building2", "label": "Health Institutions", "value": "43+"}]' },
       ],
       director_message: [
-        { label: "Name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Title", type: "text", placeholder: "Director, GAHS" },
-        { label: "Short Message", type: "textarea", placeholder: "Brief message for homepage" },
-        { label: "Tagline", type: "text", placeholder: "Closing tagline" },
+        { label: "Name", key: "name", type: "text", placeholder: "Dr. James Antwi" },
+        { label: "Title", key: "title", type: "text", placeholder: "Director, GAHS" },
+        { label: "Short Message", key: "shortMessage", type: "textarea", placeholder: "Brief message for homepage" },
+        { label: "Tagline", key: "tagline", type: "text", placeholder: "Closing tagline" },
+      ],
+      services_preview: [
+        { label: "Title", key: "title", type: "text", placeholder: "Our Services" },
+        { label: "Subtitle", key: "subtitle", type: "text", placeholder: "Section subtitle" },
       ],
       why_choose: [
-        { label: "Badge", type: "text", placeholder: "Why Choose GAHS" },
-        { label: "Title", type: "text", placeholder: "Section title" },
-        { label: "Subtitle", type: "text", placeholder: "Section subtitle" },
-        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"icon": "Network", "title": "Title", "description": "Description"}\n]' },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Why Choose GAHS" },
+        { label: "Title", key: "title", type: "text", placeholder: "Section title" },
+        { label: "Subtitle", key: "subtitle", type: "text", placeholder: "Section subtitle" },
+        { label: "Items (JSON)", key: "items", type: "textarea", placeholder: '[{"icon": "Heart", "title": "Title", "description": "Description"}]' },
       ],
       gallery_preview: [
-        { label: "Images JSON", type: "textarea", placeholder: '[\n  {"id": "1", "src": "URL", "title": "Title", "category": "Category"}\n]' },
+        { label: "Images (JSON)", key: "images", type: "textarea", placeholder: '[{"id": "1", "src": "URL", "title": "Title", "category": "Category"}]' },
       ],
-      testimonials_preview: [
-        { label: "Testimonials JSON", type: "textarea", placeholder: '[\n  {"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5, "image": "URL"}\n]' },
+      testimonials: [
+        { label: "Testimonials (JSON)", key: "testimonials", type: "textarea", placeholder: '[{"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5}]' },
       ],
     },
   },
@@ -67,29 +69,29 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "About Page",
     fields: {
       hero: [
-        { label: "Title", type: "text", placeholder: "About GAHS" },
-        { label: "Subtitle", type: "textarea", placeholder: "Learn about our organization" },
-        { label: "Badge", type: "text", placeholder: "Our Story" },
+        { label: "Title", key: "title", type: "text", placeholder: "About GAHS" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Learn about our organization" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Our Story" },
       ],
       history: [
-        { label: "Title", type: "text", placeholder: "Our History" },
-        { label: "Paragraphs JSON", type: "textarea", placeholder: '["Paragraph 1", "Paragraph 2"]' },
+        { label: "Title", key: "title", type: "text", placeholder: "Our History" },
+        { label: "Content", key: "content", type: "textarea", placeholder: "History content (paragraphs separated by blank lines)" },
       ],
       mission: [
-        { label: "Title", type: "text", placeholder: "Our Mission" },
-        { label: "Description", type: "textarea", placeholder: "Mission statement..." },
+        { label: "Title", key: "title", type: "text", placeholder: "Our Mission" },
+        { label: "Content", key: "content", type: "textarea", placeholder: "Mission statement..." },
       ],
       vision: [
-        { label: "Title", type: "text", placeholder: "Our Vision" },
-        { label: "Description", type: "textarea", placeholder: "Vision statement..." },
+        { label: "Title", key: "title", type: "text", placeholder: "Our Vision" },
+        { label: "Content", key: "content", type: "textarea", placeholder: "Vision statement..." },
       ],
       quote: [
-        { label: "Text", type: "textarea", placeholder: "Quote text" },
-        { label: "Author", type: "text", placeholder: "Author name" },
+        { label: "Text", key: "text", type: "textarea", placeholder: "Quote text" },
+        { label: "Author", key: "author", type: "text", placeholder: "Author name" },
       ],
       why_choose: [
-        { label: "Title", type: "text", placeholder: "Section title" },
-        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"title": "Title", "description": "Description"}\n]' },
+        { label: "Title", key: "title", type: "text", placeholder: "Section title" },
+        { label: "Items (JSON)", key: "items", type: "textarea", placeholder: '[{"title": "Title", "description": "Description"}]' },
       ],
     },
   },
@@ -97,25 +99,21 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Leadership Page",
     fields: {
       hero: [
-        { label: "Title", type: "text", placeholder: "Leadership Team" },
-        { label: "Subtitle", type: "textarea", placeholder: "Meet our dedicated team" },
+        { label: "Title", key: "title", type: "text", placeholder: "Leadership Team" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Meet our dedicated team" },
       ],
       director: [
-        { label: "Name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Title", type: "text", placeholder: "Director" },
-        { label: "Image", type: "image", placeholder: "Director photo URL" },
-        { label: "Message", type: "textarea", placeholder: "Full message..." },
-        { label: "Email", type: "text", placeholder: "director@gahs.org.gh" },
-        { label: "Phone", type: "text", placeholder: "+233322392578" },
+        { label: "Name", key: "name", type: "text", placeholder: "Dr. James Antwi" },
+        { label: "Title", key: "title", type: "text", placeholder: "Director" },
+        { label: "Image", key: "image", type: "image", placeholder: "Director photo URL" },
+        { label: "Message", key: "message", type: "textarea", placeholder: "Full message..." },
       ],
       team_members: [
-        { label: "Section Title", type: "text", placeholder: "Meet the GAHS Secretariat Team" },
-        { label: "Section Subtitle", type: "text", placeholder: "Team description" },
-        { label: "Members JSON", type: "textarea", placeholder: '[\n  {"name": "Name", "title": "Title", "department": "Dept", "image": "URL"}\n]' },
+        { label: "Members (JSON)", key: "members", type: "textarea", placeholder: '[{"name": "Name", "title": "Title", "department": "Dept", "image": "URL"}]' },
       ],
       quote: [
-        { label: "Text", type: "textarea", placeholder: "Quote text" },
-        { label: "Author", type: "text", placeholder: "Author name" },
+        { label: "Text", key: "text", type: "textarea", placeholder: "Quote text" },
+        { label: "Author", key: "author", type: "text", placeholder: "Author name" },
       ],
     },
   },
@@ -123,50 +121,70 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Services Page",
     fields: {
       hero: [
-        { label: "Title", type: "text", placeholder: "Our Services" },
-        { label: "Subtitle", type: "textarea", placeholder: "What we offer" },
-        { label: "Badge", type: "text", placeholder: "Our Services" },
+        { label: "Title", key: "title", type: "text", placeholder: "Our Services" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "What we offer" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Our Services" },
       ],
       services_list: [
-        { label: "Items JSON", type: "textarea", placeholder: '[\n  {"icon": "Target", "title": "Service Name", "description": "Description"}\n]' },
+        { label: "Services (JSON)", key: "services", type: "textarea", placeholder: '[{"icon": "Target", "title": "Service Name", "description": "Description"}]' },
       ],
       cta: [
-        { label: "Title", type: "text", placeholder: "Partner With Us" },
-        { label: "Description", type: "textarea", placeholder: "CTA description" },
-        { label: "Button Text", type: "text", placeholder: "Get in Touch" },
-        { label: "Button Link", type: "text", placeholder: "/contact" },
+        { label: "Title", key: "title", type: "text", placeholder: "Partner With Us" },
+        { label: "Description", key: "description", type: "textarea", placeholder: "CTA description" },
+        { label: "Button Text", key: "buttonText", type: "text", placeholder: "Get in Touch" },
+        { label: "Button Link", key: "buttonLink", type: "text", placeholder: "/contact" },
       ],
     },
   },
   gallery: {
     title: "Gallery Page",
     fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Photo Gallery" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Explore our gallery" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Our Gallery" },
+      ],
       gallery_images: [
-        { label: "Images JSON", type: "textarea", placeholder: '[\n  {"id": "1", "src": "URL", "title": "Title", "category": "Category", "description": "Description"}\n]' },
+        { label: "Images (JSON)", key: "images", type: "textarea", placeholder: '[{"id": "1", "src": "URL", "title": "Title", "category": "Category", "description": "Description"}]' },
       ],
     },
   },
   resources: {
     title: "Resources Page",
     fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Downloads & Resources" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Access reports and publications" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Resources" },
+      ],
       resources_list: [
-        { label: "Resources JSON", type: "textarea", placeholder: '[\n  {"id": "1", "title": "Title", "description": "Desc", "category": "Category", "type": "pdf", "downloadUrl": "URL", "date": "January 2025", "fileSize": "4.2 MB"}\n]' },
+        { label: "Resources (JSON)", key: "items", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "description": "Desc", "category": "Category", "type": "pdf", "downloadUrl": "URL", "date": "January 2025"}]' },
       ],
     },
   },
   testimonials: {
     title: "Testimonials Page",
     fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "What People Say" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Hear from our community" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Testimonials" },
+      ],
       testimonials_list: [
-        { label: "Testimonials JSON", type: "textarea", placeholder: '[\n  {"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5, "image": "URL"}\n]' },
+        { label: "Testimonials (JSON)", key: "testimonials", type: "textarea", placeholder: '[{"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5}]' },
       ],
     },
   },
   blog: {
     title: "Blog Page",
     fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Latest Updates" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "News and articles" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Blog & News" },
+      ],
       posts: [
-        { label: "Posts JSON", type: "textarea", placeholder: '[\n  {"id": "1", "title": "Title", "excerpt": "Excerpt", "category": "Category", "author": "Author", "date": "Date", "readTime": "5 min read"}\n]' },
+        { label: "Posts (JSON)", key: "posts", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "excerpt": "Excerpt", "category": "Category", "author": "Author", "date": "Date", "readTime": "5 min"}]' },
       ],
     },
   },
@@ -174,15 +192,15 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Contact Page",
     fields: {
       hero: [
-        { label: "Title", type: "text", placeholder: "Contact Us" },
-        { label: "Subtitle", type: "textarea", placeholder: "Get in touch" },
-        { label: "Badge", type: "text", placeholder: "Get In Touch" },
+        { label: "Title", key: "title", type: "text", placeholder: "Contact Us" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Get in touch" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Get In Touch" },
       ],
       contact_info: [
-        { label: "Address", type: "textarea", placeholder: "Full address" },
-        { label: "Phone", type: "text", placeholder: "+233 XX XXX XXXX" },
-        { label: "Email", type: "text", placeholder: "info@gahs.org.gh" },
-        { label: "Office Hours", type: "text", placeholder: "Mon-Fri: 8am-5pm" },
+        { label: "Address", key: "address", type: "textarea", placeholder: "Full address" },
+        { label: "Phone", key: "phone", type: "text", placeholder: "+233 XX XXX XXXX" },
+        { label: "Email", key: "email", type: "text", placeholder: "info@gahs.org.gh" },
+        { label: "Office Hours", key: "office_hours", type: "text", placeholder: "Mon-Fri: 8am-5pm" },
       ],
     },
   },
@@ -190,7 +208,8 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Privacy Policy",
     fields: {
       content: [
-        { label: "Full Content", type: "textarea", placeholder: "Privacy policy content" },
+        { label: "Last Updated", key: "last_updated", type: "text", placeholder: "January 2024" },
+        { label: "Sections (JSON)", key: "sections", type: "textarea", placeholder: '[{"title": "Section Title", "content": "Section content"}]' },
       ],
     },
   },
@@ -198,12 +217,12 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     title: "Terms & Conditions",
     fields: {
       content: [
-        { label: "Full Content", type: "textarea", placeholder: "Terms content" },
+        { label: "Last Updated", key: "last_updated", type: "text", placeholder: "January 2024" },
+        { label: "Sections (JSON)", key: "sections", type: "textarea", placeholder: '[{"title": "Section Title", "content": "Section content"}]' },
       ],
     },
   },
 };
-
 interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
@@ -310,9 +329,12 @@ const PageEditor = () => {
     const sectionConfig = config.fields[section.section_key];
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
-        const key = field.label.toLowerCase().replace(/ /g, "_");
-        const contentValue = (section.content as Record<string, unknown>)[key];
-        formData[key] = typeof contentValue === "string" ? contentValue : JSON.stringify(contentValue, null, 2) || "";
+        const contentValue = (section.content as Record<string, unknown>)[field.key];
+        if (contentValue !== undefined && contentValue !== null) {
+          formData[field.key] = typeof contentValue === "string" ? contentValue : JSON.stringify(contentValue, null, 2);
+        } else {
+          formData[field.key] = "";
+        }
       });
     }
     setEditFormData(formData);
@@ -327,17 +349,20 @@ const PageEditor = () => {
     
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
-        const key = field.label.toLowerCase().replace(/ /g, "_");
-        const value = editFormData[key] || "";
+        const value = editFormData[field.key] || "";
         
-        if (field.label.toLowerCase().includes("json") || field.label.toLowerCase().includes("paragraphs") || field.label.toLowerCase().includes("items") || field.label.toLowerCase().includes("members") || field.label.toLowerCase().includes("testimonials") || field.label.toLowerCase().includes("images") || field.label.toLowerCase().includes("resources")) {
+        // Check if it's a JSON field based on label containing "JSON" or specific array field names
+        const isJsonField = field.label.toLowerCase().includes("json") || 
+          ["slides", "stats", "items", "members", "testimonials", "images", "services", "posts", "sections"].includes(field.key);
+        
+        if (isJsonField) {
           try {
-            parsedContent[key] = JSON.parse(value);
+            parsedContent[field.key] = JSON.parse(value);
           } catch {
-            parsedContent[key] = value;
+            parsedContent[field.key] = value;
           }
         } else {
-          parsedContent[key] = value;
+          parsedContent[field.key] = value;
         }
       });
     }
@@ -363,8 +388,7 @@ const PageEditor = () => {
     const sectionConfig = config.fields[newSectionKey];
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
-        const key = field.label.toLowerCase().replace(/ /g, "_");
-        initialContent[key] = "";
+        initialContent[field.key] = "";
       });
     }
     await createContent(slug, newSectionKey, initialContent, pageContent.length);
@@ -545,30 +569,30 @@ const PageEditor = () => {
             <div className="py-4 space-y-4">
               {editingSection &&
                 config.fields[editingSection.section_key]?.map((field) => {
-                  const key = field.label.toLowerCase().replace(/ /g, "_");
                   return (
-                    <div key={key} className="space-y-2">
+                    <div key={field.key} className="space-y-2">
                       <Label>{field.label}</Label>
                       {field.type === "image" ? (
                         <ImageUploadField
-                          value={editFormData[key] || ""}
-                          onChange={(url) => setEditFormData({ ...editFormData, [key]: url })}
+                          value={editFormData[field.key] || ""}
+                          onChange={(url) => setEditFormData({ ...editFormData, [field.key]: url })}
                           placeholder={field.placeholder}
                         />
                       ) : field.type === "textarea" ? (
                         <Textarea
-                          value={editFormData[key] || ""}
+                          value={editFormData[field.key] || ""}
                           onChange={(e) =>
-                            setEditFormData({ ...editFormData, [key]: e.target.value })
+                            setEditFormData({ ...editFormData, [field.key]: e.target.value })
                           }
                           placeholder={field.placeholder}
                           rows={field.label.includes("JSON") || field.label.includes("Content") || field.label.includes("Message") ? 10 : 4}
+                          className="font-mono text-sm"
                         />
                       ) : (
                         <Input
-                          value={editFormData[key] || ""}
+                          value={editFormData[field.key] || ""}
                           onChange={(e) =>
-                            setEditFormData({ ...editFormData, [key]: e.target.value })
+                            setEditFormData({ ...editFormData, [field.key]: e.target.value })
                           }
                           placeholder={field.placeholder}
                         />
