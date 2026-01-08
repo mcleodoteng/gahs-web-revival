@@ -5,13 +5,12 @@ import {
   LayoutDashboard,
   FileText,
   Image,
-  Users,
   Settings,
   LogOut,
   Home,
   ChevronRight,
   Menu,
-  X,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +25,7 @@ interface AdminLayoutProps {
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Pages", href: "/admin/pages", icon: FileText },
+  { name: "Messages", href: "/admin/messages", icon: MessageSquare },
   { name: "Media", href: "/admin/media", icon: Image },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];

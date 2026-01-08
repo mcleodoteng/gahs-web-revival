@@ -25,6 +25,7 @@ import AdminPages from "./pages/admin/Pages";
 import AdminPageEditor from "./pages/admin/PageEditor";
 import AdminMedia from "./pages/admin/Media";
 import AdminSettings from "./pages/admin/Settings";
+import AdminMessages from "./pages/admin/Messages";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/admin/pages/:slug" element={<AdminPageEditor />} />
             <Route path="/admin/media" element={<AdminMedia />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/messages" element={<AdminMessages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
