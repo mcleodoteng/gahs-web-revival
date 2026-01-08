@@ -31,15 +31,101 @@ import { useCMS, PageContent } from "@/hooks/useCMS";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ArrayEditor, ArrayFieldConfig } from "@/components/admin/ArrayEditor";
+
+// Define array field configurations for visual editing
+const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
+  slides: [
+    { key: "title", label: "Title", type: "text", placeholder: "Compassionate Healthcare" },
+    { key: "highlight", label: "Highlight Text", type: "text", placeholder: "Rooted in Faith" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Slide description..." },
+    { key: "image", label: "Background Image", type: "image", placeholder: "Image URL" },
+  ],
+  stats: [
+    { key: "icon", label: "Icon Name", type: "select", options: [
+      { label: "Building", value: "Building2" },
+      { label: "Users", value: "Users" },
+      { label: "Heart", value: "Heart" },
+      { label: "Star", value: "Star" },
+      { label: "Award", value: "Award" },
+      { label: "Target", value: "Target" },
+      { label: "Shield", value: "Shield" },
+      { label: "Globe", value: "Globe" },
+    ]},
+    { key: "value", label: "Value", type: "text", placeholder: "43+" },
+    { key: "label", label: "Label", type: "text", placeholder: "Health Institutions" },
+  ],
+  items: [
+    { key: "icon", label: "Icon Name", type: "select", options: [
+      { label: "Heart", value: "Heart" },
+      { label: "Users", value: "Users" },
+      { label: "Shield", value: "Shield" },
+      { label: "Target", value: "Target" },
+      { label: "Award", value: "Award" },
+      { label: "Book", value: "BookOpen" },
+      { label: "Clock", value: "Clock" },
+      { label: "Star", value: "Star" },
+    ]},
+    { key: "title", label: "Title", type: "text", placeholder: "Item title" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Item description..." },
+  ],
+  images: [
+    { key: "src", label: "Image", type: "image", placeholder: "Image URL" },
+    { key: "title", label: "Title", type: "text", placeholder: "Image title" },
+    { key: "category", label: "Category", type: "text", placeholder: "Category" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Image description..." },
+  ],
+  testimonials: [
+    { key: "name", label: "Name", type: "text", placeholder: "John Doe" },
+    { key: "role", label: "Role", type: "text", placeholder: "Patient" },
+    { key: "location", label: "Location", type: "text", placeholder: "Accra, Ghana" },
+    { key: "content", label: "Testimonial", type: "textarea", placeholder: "Their testimonial..." },
+    { key: "rating", label: "Rating (1-5)", type: "number", placeholder: "5" },
+    { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
+  ],
+  members: [
+    { key: "name", label: "Name", type: "text", placeholder: "Dr. Jane Smith" },
+    { key: "title", label: "Title/Role", type: "text", placeholder: "Chief Medical Officer" },
+    { key: "department", label: "Department", type: "text", placeholder: "Medical Department" },
+    { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
+  ],
+  services: [
+    { key: "icon", label: "Icon Name", type: "select", options: [
+      { label: "Target", value: "Target" },
+      { label: "Heart", value: "Heart" },
+      { label: "Users", value: "Users" },
+      { label: "Shield", value: "Shield" },
+      { label: "Book", value: "BookOpen" },
+      { label: "Building", value: "Building2" },
+      { label: "Stethoscope", value: "Stethoscope" },
+      { label: "Graduation Cap", value: "GraduationCap" },
+    ]},
+    { key: "title", label: "Service Name", type: "text", placeholder: "Healthcare Service" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Service description..." },
+  ],
+  posts: [
+    { key: "title", label: "Title", type: "text", placeholder: "Blog post title" },
+    { key: "excerpt", label: "Excerpt", type: "textarea", placeholder: "Brief summary..." },
+    { key: "category", label: "Category", type: "text", placeholder: "News" },
+    { key: "author", label: "Author", type: "text", placeholder: "Author name" },
+    { key: "date", label: "Date", type: "text", placeholder: "January 2025" },
+    { key: "readTime", label: "Read Time", type: "text", placeholder: "5 min" },
+    { key: "image", label: "Featured Image", type: "image", placeholder: "Image URL" },
+  ],
+  sections: [
+    { key: "title", label: "Section Title", type: "text", placeholder: "Section title" },
+    { key: "content", label: "Content", type: "textarea", placeholder: "Section content..." },
+  ],
+};
 
 // Maps section keys to their field configurations with actual CMS content keys
-const pageConfig: Record<string, { title: string; fields: Record<string, { label: string; key: string; type: string; placeholder?: string }[]> }> = {
+const pageConfig: Record<string, { title: string; fields: Record<string, { label: string; key: string; type: string; placeholder?: string; arrayType?: string }[]> }> = {
   home: {
     title: "Home Page",
     fields: {
       hero: [
-        { label: "Slides (JSON)", key: "slides", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "highlight": "Highlight", "description": "Description", "image": "URL"}]' },
-        { label: "Stats (JSON)", key: "stats", type: "textarea", placeholder: '[{"icon": "Building2", "label": "Health Institutions", "value": "43+"}]' },
+        { label: "Slides", key: "slides", type: "array", arrayType: "slides" },
+        { label: "Stats", key: "stats", type: "array", arrayType: "stats" },
       ],
       director_message: [
         { label: "Name", key: "name", type: "text", placeholder: "Dr. James Antwi" },
@@ -55,13 +141,13 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Why Choose GAHS" },
         { label: "Title", key: "title", type: "text", placeholder: "Section title" },
         { label: "Subtitle", key: "subtitle", type: "text", placeholder: "Section subtitle" },
-        { label: "Items (JSON)", key: "items", type: "textarea", placeholder: '[{"icon": "Heart", "title": "Title", "description": "Description"}]' },
+        { label: "Items", key: "items", type: "array", arrayType: "items" },
       ],
       gallery_preview: [
-        { label: "Images (JSON)", key: "images", type: "textarea", placeholder: '[{"id": "1", "src": "URL", "title": "Title", "category": "Category"}]' },
+        { label: "Images", key: "images", type: "array", arrayType: "images" },
       ],
       testimonials: [
-        { label: "Testimonials (JSON)", key: "testimonials", type: "textarea", placeholder: '[{"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5}]' },
+        { label: "Testimonials", key: "testimonials", type: "array", arrayType: "testimonials" },
       ],
     },
   },
@@ -91,7 +177,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
       why_choose: [
         { label: "Title", key: "title", type: "text", placeholder: "Section title" },
-        { label: "Items (JSON)", key: "items", type: "textarea", placeholder: '[{"title": "Title", "description": "Description"}]' },
+        { label: "Items", key: "items", type: "array", arrayType: "items" },
       ],
     },
   },
@@ -109,7 +195,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Message", key: "message", type: "textarea", placeholder: "Full message..." },
       ],
       team_members: [
-        { label: "Members (JSON)", key: "members", type: "textarea", placeholder: '[{"name": "Name", "title": "Title", "department": "Dept", "image": "URL"}]' },
+        { label: "Team Members", key: "members", type: "array", arrayType: "members" },
       ],
       quote: [
         { label: "Text", key: "text", type: "textarea", placeholder: "Quote text" },
@@ -126,7 +212,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Our Services" },
       ],
       services_list: [
-        { label: "Services (JSON)", key: "services", type: "textarea", placeholder: '[{"icon": "Target", "title": "Service Name", "description": "Description"}]' },
+        { label: "Services", key: "services", type: "array", arrayType: "services" },
       ],
       cta: [
         { label: "Title", key: "title", type: "text", placeholder: "Partner With Us" },
@@ -145,7 +231,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Our Gallery" },
       ],
       gallery_images: [
-        { label: "Images (JSON)", key: "images", type: "textarea", placeholder: '[{"id": "1", "src": "URL", "title": "Title", "category": "Category", "description": "Description"}]' },
+        { label: "Gallery Images", key: "images", type: "array", arrayType: "images" },
       ],
     },
   },
@@ -158,7 +244,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Resources" },
       ],
       resources_list: [
-        { label: "Resources (JSON)", key: "items", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "description": "Desc", "category": "Category", "type": "pdf", "downloadUrl": "URL", "date": "January 2025"}]' },
+        { label: "Resources", key: "items", type: "array", arrayType: "items" },
       ],
     },
   },
@@ -171,7 +257,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Testimonials" },
       ],
       testimonials_list: [
-        { label: "Testimonials (JSON)", key: "testimonials", type: "textarea", placeholder: '[{"id": "1", "name": "Name", "role": "Role", "location": "Location", "content": "Content", "rating": 5}]' },
+        { label: "Testimonials", key: "testimonials", type: "array", arrayType: "testimonials" },
       ],
     },
   },
@@ -184,7 +270,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Blog & News" },
       ],
       posts: [
-        { label: "Posts (JSON)", key: "posts", type: "textarea", placeholder: '[{"id": "1", "title": "Title", "excerpt": "Excerpt", "category": "Category", "author": "Author", "date": "Date", "readTime": "5 min"}]' },
+        { label: "Blog Posts", key: "posts", type: "array", arrayType: "posts" },
       ],
     },
   },
@@ -209,7 +295,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     fields: {
       content: [
         { label: "Last Updated", key: "last_updated", type: "text", placeholder: "January 2024" },
-        { label: "Sections (JSON)", key: "sections", type: "textarea", placeholder: '[{"title": "Section Title", "content": "Section content"}]' },
+        { label: "Sections", key: "sections", type: "array", arrayType: "sections" },
       ],
     },
   },
@@ -218,7 +304,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
     fields: {
       content: [
         { label: "Last Updated", key: "last_updated", type: "text", placeholder: "January 2024" },
-        { label: "Sections (JSON)", key: "sections", type: "textarea", placeholder: '[{"title": "Section Title", "content": "Section content"}]' },
+        { label: "Sections", key: "sections", type: "array", arrayType: "sections" },
       ],
     },
   },
@@ -303,7 +389,7 @@ const PageEditor = () => {
   const { toast } = useToast();
   const { content, isLoading, updateContent, createContent, deleteContent } = useCMS();
   const [editingSection, setEditingSection] = useState<PageContent | null>(null);
-  const [editFormData, setEditFormData] = useState<Record<string, string>>({});
+  const [editFormData, setEditFormData] = useState<Record<string, unknown>>({});
   const [newSectionKey, setNewSectionKey] = useState("");
   const [showNewDialog, setShowNewDialog] = useState(false);
 
@@ -325,12 +411,15 @@ const PageEditor = () => {
 
   const handleEditSection = (section: PageContent) => {
     setEditingSection(section);
-    const formData: Record<string, string> = {};
+    const formData: Record<string, unknown> = {};
     const sectionConfig = config.fields[section.section_key];
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
         const contentValue = (section.content as Record<string, unknown>)[field.key];
-        if (contentValue !== undefined && contentValue !== null) {
+        if (field.type === "array") {
+          // Keep arrays as arrays for the ArrayEditor
+          formData[field.key] = Array.isArray(contentValue) ? contentValue : [];
+        } else if (contentValue !== undefined && contentValue !== null) {
           formData[field.key] = typeof contentValue === "string" ? contentValue : JSON.stringify(contentValue, null, 2);
         } else {
           formData[field.key] = "";
@@ -343,26 +432,19 @@ const PageEditor = () => {
   const handleSaveSection = async () => {
     if (!editingSection) return;
     
-    // Parse JSON fields back to objects
+    // Process form data for saving
     const parsedContent: Record<string, unknown> = {};
     const sectionConfig = config.fields[editingSection.section_key];
     
     if (sectionConfig) {
       sectionConfig.forEach((field) => {
-        const value = editFormData[field.key] || "";
+        const value = editFormData[field.key];
         
-        // Check if it's a JSON field based on label containing "JSON" or specific array field names
-        const isJsonField = field.label.toLowerCase().includes("json") || 
-          ["slides", "stats", "items", "members", "testimonials", "images", "services", "posts", "sections"].includes(field.key);
-        
-        if (isJsonField) {
-          try {
-            parsedContent[field.key] = JSON.parse(value);
-          } catch {
-            parsedContent[field.key] = value;
-          }
-        } else {
+        if (field.type === "array") {
+          // Arrays are already in the correct format
           parsedContent[field.key] = value;
+        } else {
+          parsedContent[field.key] = value || "";
         }
       });
     }
@@ -566,31 +648,39 @@ const PageEditor = () => {
                 Update the content for this section.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4 space-y-4">
+            <div className="py-4 space-y-6">
               {editingSection &&
                 config.fields[editingSection.section_key]?.map((field) => {
+                  const fieldDef = field as { label: string; key: string; type: string; placeholder?: string; arrayType?: string };
+                  
                   return (
                     <div key={field.key} className="space-y-2">
-                      <Label>{field.label}</Label>
-                      {field.type === "image" ? (
+                      <Label className="text-base font-semibold">{field.label}</Label>
+                      {fieldDef.type === "array" && fieldDef.arrayType ? (
+                        <ArrayEditor
+                          value={editFormData[field.key] as unknown[] || []}
+                          onChange={(newValue) => setEditFormData({ ...editFormData, [field.key]: newValue })}
+                          fields={arrayFieldConfigs[fieldDef.arrayType] || []}
+                          itemLabel={field.label.replace(/s$/, "")}
+                        />
+                      ) : field.type === "image" ? (
                         <ImageUploadField
-                          value={editFormData[field.key] || ""}
+                          value={String(editFormData[field.key] || "")}
                           onChange={(url) => setEditFormData({ ...editFormData, [field.key]: url })}
                           placeholder={field.placeholder}
                         />
                       ) : field.type === "textarea" ? (
                         <Textarea
-                          value={editFormData[field.key] || ""}
+                          value={String(editFormData[field.key] || "")}
                           onChange={(e) =>
                             setEditFormData({ ...editFormData, [field.key]: e.target.value })
                           }
                           placeholder={field.placeholder}
-                          rows={field.label.includes("JSON") || field.label.includes("Content") || field.label.includes("Message") ? 10 : 4}
-                          className="font-mono text-sm"
+                          rows={field.label.includes("Content") || field.label.includes("Message") ? 10 : 4}
                         />
                       ) : (
                         <Input
-                          value={editFormData[field.key] || ""}
+                          value={String(editFormData[field.key] || "")}
                           onChange={(e) =>
                             setEditFormData({ ...editFormData, [field.key]: e.target.value })
                           }
