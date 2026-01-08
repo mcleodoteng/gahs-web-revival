@@ -116,6 +116,28 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
     { key: "title", label: "Section Title", type: "text", placeholder: "Section title" },
     { key: "content", label: "Content", type: "textarea", placeholder: "Section content..." },
   ],
+  institutions: [
+    { key: "name", label: "Institution Name", type: "text", placeholder: "S.D.A. Hospital, Kwadaso" },
+    { key: "location", label: "Location", type: "text", placeholder: "Kwadaso" },
+    { key: "region", label: "Region", type: "text", placeholder: "Ashanti" },
+    { key: "union", label: "Union", type: "select", options: [
+      { label: "MGUC", value: "MGUC" },
+      { label: "SGUC", value: "SGUC" },
+      { label: "MCGUM", value: "MCGUM" },
+      { label: "All Unions", value: "ALL UNIONS" },
+    ]},
+    { key: "type", label: "Type", type: "select", options: [
+      { label: "Hospital", value: "Hospital" },
+      { label: "Clinic", value: "Clinic" },
+      { label: "Polyclinic", value: "Polyclinic" },
+      { label: "Specialized", value: "Specialized" },
+      { label: "Training", value: "Training" },
+    ]},
+    { key: "status", label: "Status", type: "select", options: [
+      { label: "Active", value: "ACTIVE" },
+      { label: "Awaiting Accreditation", value: "AWAITING FULL ACCREDITATION" },
+    ]},
+  ],
 };
 
 // Maps section keys to their field configurations with actual CMS content keys
@@ -305,6 +327,31 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       content: [
         { label: "Last Updated", key: "last_updated", type: "text", placeholder: "January 2024" },
         { label: "Sections", key: "sections", type: "array", arrayType: "sections" },
+      ],
+    },
+  },
+  institutions: {
+    title: "Institutions Page",
+    fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Our Institutions" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Explore our network" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Institutions Directory" },
+      ],
+      hospitals: [
+        { label: "Hospitals", key: "institutions", type: "array", arrayType: "institutions" },
+      ],
+      clinics: [
+        { label: "Clinics", key: "institutions", type: "array", arrayType: "institutions" },
+      ],
+      polyclinics: [
+        { label: "Polyclinics", key: "institutions", type: "array", arrayType: "institutions" },
+      ],
+      specialized: [
+        { label: "Specialized Facilities", key: "institutions", type: "array", arrayType: "institutions" },
+      ],
+      training: [
+        { label: "Training Institutions", key: "institutions", type: "array", arrayType: "institutions" },
       ],
     },
   },
