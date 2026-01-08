@@ -10,6 +10,12 @@ interface HeroContent {
   badge: string;
 }
 
+interface HistoryContentRaw {
+  title?: string;
+  paragraphs?: string[];
+  content?: string;
+}
+
 interface HistoryContent {
   title: string;
   paragraphs: string[];
@@ -44,20 +50,34 @@ const AboutPage = () => {
     badge: "Our Story"
   })!;
 
-  const historyContent = getSection<HistoryContent>("history", {
+  const historyRaw = getSection<HistoryContentRaw>("history", {
     title: "Our History",
     paragraphs: []
   })!;
+  
+  // Normalize: CMS may store as single 'content' string instead of 'paragraphs' array
+  const historyContent: HistoryContent = {
+    title: historyRaw.title || "Our History",
+    paragraphs: historyRaw.paragraphs || (historyRaw.content ? historyRaw.content.split('\n\n').filter(p => p.trim()) : [])
+  };
 
-  const missionContent = getSection<MissionVisionContent>("mission", {
+  const missionRaw = getSection<{ title?: string; description?: string; content?: string }>("mission", {
     title: "Our Mission",
     description: ""
   })!;
+  const missionContent: MissionVisionContent = {
+    title: missionRaw.title || "Our Mission",
+    description: missionRaw.description || missionRaw.content || ""
+  };
 
-  const visionContent = getSection<MissionVisionContent>("vision", {
+  const visionRaw = getSection<{ title?: string; description?: string; content?: string }>("vision", {
     title: "Our Vision",
     description: ""
   })!;
+  const visionContent: MissionVisionContent = {
+    title: visionRaw.title || "Our Vision",
+    description: visionRaw.description || visionRaw.content || ""
+  };
 
   const quoteContent = getSection<QuoteContent>("quote", {
     text: "",
