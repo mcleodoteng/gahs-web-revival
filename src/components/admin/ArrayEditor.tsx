@@ -166,6 +166,13 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
     return (obj.title as string) || (obj.name as string) || (obj.label as string) || `${itemLabel} ${index + 1}`;
   };
 
+  const getItemImage = (item: unknown): string | null => {
+    if (typeof item !== "object" || !item) return null;
+    const obj = item as Record<string, unknown>;
+    const imageUrl = (obj.image as string) || (obj.src as string) || (obj.avatar as string) || (obj.photo as string);
+    return imageUrl && typeof imageUrl === "string" && imageUrl.length > 0 ? imageUrl : null;
+  };
+
   return (
     <div className="space-y-3">
       {items.length === 0 ? (
@@ -178,114 +185,129 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
         </div>
       ) : (
         <>
-          {items.map((item, index) => (
-            <Card key={index} className="overflow-hidden">
-              <div 
-                className="flex items-center gap-2 p-3 bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                onClick={() => toggleExpand(index)}
-              >
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <span className="flex-1 font-medium text-sm truncate">
-                  {getItemTitle(item, index)}
-                </span>
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => moveItem(index, "up")}
-                    disabled={index === 0}
-                  >
-                    <ChevronUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => moveItem(index, "down")}
-                    disabled={index === items.length - 1}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => removeItem(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+          {items.map((item, index) => {
+            const itemImage = getItemImage(item);
+            return (
+              <Card key={index} className="overflow-hidden">
+                <div 
+                  className="flex items-center gap-2 p-3 bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                  onClick={() => toggleExpand(index)}
+                >
+                  <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  {itemImage && (
+                    <div className="w-10 h-10 rounded-md overflow-hidden border bg-background flex-shrink-0">
+                      <img 
+                        src={itemImage} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <span className="flex-1 font-medium text-sm truncate">
+                    {getItemTitle(item, index)}
+                  </span>
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => moveItem(index, "up")}
+                      disabled={index === 0}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => moveItem(index, "down")}
+                      disabled={index === items.length - 1}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => removeItem(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {expandedItems.has(index) ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  )}
                 </div>
-                {expandedItems.has(index) ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                
+                {expandedItems.has(index) && (
+                  <CardContent className="pt-4 space-y-4">
+                    {fields.map((field) => {
+                      const fieldValue = (item as Record<string, unknown>)?.[field.key];
+                      
+                      return (
+                        <div key={field.key} className="space-y-1.5">
+                          <Label className="text-xs font-medium text-muted-foreground">
+                            {field.label}
+                          </Label>
+                          {field.type === "image" ? (
+                            <ImageUploadInput
+                              value={String(fieldValue || "")}
+                              onChange={(url) => updateItem(index, field.key, url)}
+                              placeholder={field.placeholder}
+                            />
+                          ) : field.type === "textarea" ? (
+                            <Textarea
+                              value={String(fieldValue || "")}
+                              onChange={(e) => updateItem(index, field.key, e.target.value)}
+                              placeholder={field.placeholder}
+                              rows={3}
+                              className="text-sm"
+                            />
+                          ) : field.type === "number" ? (
+                            <Input
+                              type="number"
+                              value={String(fieldValue || "")}
+                              onChange={(e) => updateItem(index, field.key, Number(e.target.value))}
+                              placeholder={field.placeholder}
+                              className="text-sm"
+                            />
+                          ) : field.type === "select" && field.options ? (
+                            <select
+                              value={String(fieldValue || "")}
+                              onChange={(e) => updateItem(index, field.key, e.target.value)}
+                              className="w-full p-2 border rounded-lg text-sm bg-background"
+                            >
+                              <option value="">Select...</option>
+                              {field.options.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <Input
+                              value={String(fieldValue || "")}
+                              onChange={(e) => updateItem(index, field.key, e.target.value)}
+                              placeholder={field.placeholder}
+                              className="text-sm"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
                 )}
-              </div>
-              
-              {expandedItems.has(index) && (
-                <CardContent className="pt-4 space-y-4">
-                  {fields.map((field) => {
-                    const fieldValue = (item as Record<string, unknown>)?.[field.key];
-                    
-                    return (
-                      <div key={field.key} className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                          {field.label}
-                        </Label>
-                        {field.type === "image" ? (
-                          <ImageUploadInput
-                            value={String(fieldValue || "")}
-                            onChange={(url) => updateItem(index, field.key, url)}
-                            placeholder={field.placeholder}
-                          />
-                        ) : field.type === "textarea" ? (
-                          <Textarea
-                            value={String(fieldValue || "")}
-                            onChange={(e) => updateItem(index, field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            rows={3}
-                            className="text-sm"
-                          />
-                        ) : field.type === "number" ? (
-                          <Input
-                            type="number"
-                            value={String(fieldValue || "")}
-                            onChange={(e) => updateItem(index, field.key, Number(e.target.value))}
-                            placeholder={field.placeholder}
-                            className="text-sm"
-                          />
-                        ) : field.type === "select" && field.options ? (
-                          <select
-                            value={String(fieldValue || "")}
-                            onChange={(e) => updateItem(index, field.key, e.target.value)}
-                            className="w-full p-2 border rounded-lg text-sm bg-background"
-                          >
-                            <option value="">Select...</option>
-                            {field.options.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <Input
-                            value={String(fieldValue || "")}
-                            onChange={(e) => updateItem(index, field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            className="text-sm"
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              )}
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
           
           <Button type="button" variant="outline" size="sm" onClick={addItem} className="w-full">
             <Plus className="h-4 w-4 mr-2" />
