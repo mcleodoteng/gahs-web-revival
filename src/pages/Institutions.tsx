@@ -1,108 +1,96 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
 import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { usePageContent } from "@/hooks/useCMS";
 
-// Institution data from the provided content
-const hospitals = [
-  { name: "Akomaa Memorial Hospital", location: "Kortwia", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "Hart Adventist Hospital", location: "Ahinsan", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "Nagel Memorial Adventist Hospital", location: "Takoradi", region: "Western", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Asamang", location: "Agona-Asamang", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Breman", location: "Breman", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Cape Coast", location: "Cape Coast", region: "Central", union: "SGUC", status: "AWAITING FULL ACCREDITATION" },
-  { name: "S.D.A. Hospital, Denkyira Dominase", location: "Denkyira Dominase", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Dominase", location: "Dominase", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Gbawe", location: "New Gbawe", region: "Greater Accra", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Koforidua", location: "Koforidua", region: "Eastern", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Kwadaso", location: "Kwadaso", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Namong", location: "Offinso Namong", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Obuasi", location: "Obuasi", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Sefwi Asawinso", location: "Sefwi Asawinso", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Sefwi Kofikrom", location: "Sefwi Kofikrom", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Sunyani", location: "Fiapre - Sunyani", region: "Bono", union: "MCGUM", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Tamale", location: "Tamale", region: "Northern", union: "MCGUM", status: "ACTIVE" },
-  { name: "S.D.A. Hospital, Wiamoase", location: "Wiamoase", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "Valley View Hospital, Oyibi", location: "Oyibi", region: "Greater Accra", union: "SGUC", status: "ACTIVE" },
-  { name: "Valley View Hospital, Techiman", location: "Techiman", region: "Bono", union: "MCGUM", status: "ACTIVE" },
+interface Institution {
+  name: string;
+  location: string;
+  region: string;
+  union: string;
+  type: string;
+  status: string;
+}
+
+// Default data as fallback
+const defaultHospitals: Institution[] = [
+  { name: "Akomaa Memorial Hospital", location: "Kortwia", region: "Ashanti", union: "MGUC", type: "Hospital", status: "ACTIVE" },
+  { name: "Hart Adventist Hospital", location: "Ahinsan", region: "Ashanti", union: "MGUC", type: "Hospital", status: "ACTIVE" },
+  { name: "Nagel Memorial Adventist Hospital", location: "Takoradi", region: "Western", union: "SGUC", type: "Hospital", status: "ACTIVE" },
 ];
 
-const clinics = [
-  { name: "Mary Ekuba Memorial Adventist Clinic", location: "Akwidaa", region: "Western", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Apaah", location: "Apaah", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Anyinasuso", location: "Anyinasuso", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Asaago", location: "Asaago", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Dadieso", location: "Dadieso", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Duadaso No. 2", location: "Duadaaso No. 2", region: "Bono", union: "MCGUM", status: "AWAITING FULL ACCREDITATION" },
-  { name: "S.D.A. Clinic, Konkoma", location: "Konkoma", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Kwasi Adukrom", location: "Akwasi Adukrom", region: "Western North", union: "SGUC", status: "AWAITING FULL ACCREDITATION" },
-  { name: "S.D.A. Clinic, Nkatieso", location: "Nkatieso", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Sefwi Amoaya", location: "Sefwi Amoaya", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic & Maternity, Sefwi Punikrom", location: "Sefwi Punikrom", region: "Western North", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Wa", location: "Wa", region: "Upper West", union: "MCGUM", status: "ACTIVE" },
-  { name: "S.D.A. Clinic, Wassa Nkran", location: "Wassa Nkran", region: "Western", union: "SGUC", status: "ACTIVE" },
-  { name: "Adventist Medical Center, Ho", location: "Ho", region: "Volta", union: "SGUC", status: "AWAITING FULL ACCREDITATION" },
+const defaultClinics: Institution[] = [
+  { name: "Mary Ekuba Memorial Adventist Clinic", location: "Akwidaa", region: "Western", union: "SGUC", type: "Clinic", status: "ACTIVE" },
 ];
 
-const polyclinics = [
-  { name: "S.D.A. Polyclinic, Nobewam", location: "Nobewam", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Polyclinic, Koforidua", location: "Koforidua", region: "Eastern", union: "SGUC", status: "ACTIVE" },
+const defaultPolyclinics: Institution[] = [
+  { name: "S.D.A. Polyclinic, Nobewam", location: "Nobewam", region: "Ashanti", union: "MGUC", type: "Polyclinic", status: "ACTIVE" },
 ];
 
-const specializedFacilities = [
-  { name: "Central Medical Stores (CMS)", location: "Kwadaso", region: "Ashanti", union: "ALL UNIONS", status: "ACTIVE" },
-  { name: "Valley View Dental Clinic", location: "Oduom", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
+const defaultSpecialized: Institution[] = [
+  { name: "Central Medical Stores (CMS)", location: "Kwadaso", region: "Ashanti", union: "ALL UNIONS", type: "Specialized", status: "ACTIVE" },
 ];
 
-const trainingInstitutions = [
-  { name: "Adventist College of Health Sciences", location: "Akyem Batebi", region: "Eastern", union: "SGUC", status: "AWAITING FULL ACCREDITATION" },
-  { name: "S.D.A. College of Health, Barekese", location: "Barekese", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. College of Health, Patriensa", location: "Patriensa", region: "Ashanti", union: "MGUC", status: "AWAITING FULL ACCREDITATION" },
-  { name: "S.D.A. College of Nursing and Midwifery, Anyinasu", location: "Anyinasu", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Nursing and Midwifery Training College, Asanta", location: "Asanta", region: "Western", union: "SGUC", status: "ACTIVE" },
-  { name: "S.D.A. Nursing and Midwifery Training College, Asamang", location: "Asamang", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-  { name: "S.D.A. Nursing and Midwifery Training College, Kwadaso", location: "Kwadaso", region: "Ashanti", union: "MGUC", status: "ACTIVE" },
-];
-
-const categories = [
-  { id: "all", name: "All Institutions", icon: Building2, count: 43 },
-  { id: "hospitals", name: "Hospitals", icon: Building2, count: 20 },
-  { id: "clinics", name: "Clinics", icon: Stethoscope, count: 14 },
-  { id: "polyclinics", name: "Polyclinics", icon: Stethoscope, count: 2 },
-  { id: "specialized", name: "Specialized", icon: Pill, count: 2 },
-  { id: "training", name: "Training", icon: GraduationCap, count: 7 },
+const defaultTraining: Institution[] = [
+  { name: "S.D.A. College of Health, Barekese", location: "Barekese", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE" },
 ];
 
 const InstitutionsPage = () => {
+  const { sections, isLoading } = usePageContent("institutions");
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Get data from CMS or use defaults
+  const heroContent = sections.find(s => s.section_key === "hero")?.content as { title?: string; subtitle?: string; badge?: string } | undefined;
+  
+  const hospitalsContent = sections.find(s => s.section_key === "hospitals")?.content as { institutions?: Institution[] } | undefined;
+  const clinicsContent = sections.find(s => s.section_key === "clinics")?.content as { institutions?: Institution[] } | undefined;
+  const polyclinicsContent = sections.find(s => s.section_key === "polyclinics")?.content as { institutions?: Institution[] } | undefined;
+  const specializedContent = sections.find(s => s.section_key === "specialized")?.content as { institutions?: Institution[] } | undefined;
+  const trainingContent = sections.find(s => s.section_key === "training")?.content as { institutions?: Institution[] } | undefined;
+
+  const hospitals = hospitalsContent?.institutions?.length ? hospitalsContent.institutions : defaultHospitals;
+  const clinics = clinicsContent?.institutions?.length ? clinicsContent.institutions : defaultClinics;
+  const polyclinics = polyclinicsContent?.institutions?.length ? polyclinicsContent.institutions : defaultPolyclinics;
+  const specialized = specializedContent?.institutions?.length ? specializedContent.institutions : defaultSpecialized;
+  const training = trainingContent?.institutions?.length ? trainingContent.institutions : defaultTraining;
+
+  const categories = useMemo(() => [
+    { id: "all", name: "All Institutions", icon: Building2, count: hospitals.length + clinics.length + polyclinics.length + specialized.length + training.length },
+    { id: "hospitals", name: "Hospitals", icon: Building2, count: hospitals.length },
+    { id: "clinics", name: "Clinics", icon: Stethoscope, count: clinics.length },
+    { id: "polyclinics", name: "Polyclinics", icon: Stethoscope, count: polyclinics.length },
+    { id: "specialized", name: "Specialized", icon: Pill, count: specialized.length },
+    { id: "training", name: "Training", icon: GraduationCap, count: training.length },
+  ], [hospitals, clinics, polyclinics, specialized, training]);
+
   const getInstitutions = () => {
-    let institutions: { name: string; location: string; region: string; union: string; status: string; type: string }[] = [];
+    let institutions: Institution[] = [];
     
     switch (activeCategory) {
       case "hospitals":
-        institutions = hospitals.map(i => ({ ...i, type: "Hospital" }));
+        institutions = hospitals;
         break;
       case "clinics":
-        institutions = clinics.map(i => ({ ...i, type: "Clinic" }));
+        institutions = clinics;
         break;
       case "polyclinics":
-        institutions = polyclinics.map(i => ({ ...i, type: "Polyclinic" }));
+        institutions = polyclinics;
         break;
       case "specialized":
-        institutions = specializedFacilities.map(i => ({ ...i, type: "Specialized" }));
+        institutions = specialized;
         break;
       case "training":
-        institutions = trainingInstitutions.map(i => ({ ...i, type: "Training" }));
+        institutions = training;
         break;
       default:
         institutions = [
-          ...hospitals.map(i => ({ ...i, type: "Hospital" })),
-          ...clinics.map(i => ({ ...i, type: "Clinic" })),
-          ...polyclinics.map(i => ({ ...i, type: "Polyclinic" })),
-          ...specializedFacilities.map(i => ({ ...i, type: "Specialized" })),
-          ...trainingInstitutions.map(i => ({ ...i, type: "Training" })),
+          ...hospitals,
+          ...clinics,
+          ...polyclinics,
+          ...specialized,
+          ...training,
         ];
     }
 
@@ -119,12 +107,22 @@ const InstitutionsPage = () => {
 
   const institutions = getInstitutions();
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <PageHero
-        title="Our Institutions"
-        subtitle="Explore our network of hospitals, clinics, polyclinics, and training institutions across Ghana."
-        badge="Institutions Directory"
+        title={heroContent?.title || "Our Institutions"}
+        subtitle={heroContent?.subtitle || "Explore our network of hospitals, clinics, polyclinics, and training institutions across Ghana."}
+        badge={heroContent?.badge || "Institutions Directory"}
       />
 
       {/* Filters Section */}

@@ -33,8 +33,8 @@ const pages = [
   { 
     name: "Institutions", 
     slug: "institutions", 
-    description: "Healthcare facilities and their details",
-    sections: ["hero", "filter_options", "institutions_table"]
+    description: "Healthcare facilities directory - hospitals, clinics, training",
+    sections: ["hero", "hospitals", "clinics", "polyclinics", "specialized", "training"]
   },
   { 
     name: "Gallery", 
