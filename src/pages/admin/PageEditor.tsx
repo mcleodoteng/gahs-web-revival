@@ -139,6 +139,22 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
       { label: "Awaiting Accreditation", value: "AWAITING FULL ACCREDITATION" },
     ]},
   ],
+  resources: [
+    { key: "title", label: "Title", type: "text", placeholder: "GAHS Annual Report 2024" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Brief description of the resource..." },
+    { key: "category", label: "Category", type: "select", options: [
+      { label: "Application Forms", value: "Application Forms" },
+      { label: "Annual Reports", value: "Annual Reports" },
+      { label: "Monthly Reports", value: "Monthly Reports" },
+      { label: "Guidelines", value: "Guidelines" },
+      { label: "Training Materials", value: "Training Materials" },
+      { label: "Newsletters", value: "Newsletters" },
+      { label: "Other", value: "Other" },
+    ]},
+    { key: "fileUrl", label: "PDF File", type: "file", placeholder: "Upload PDF document" },
+    { key: "date", label: "Date", type: "text", placeholder: "January 2025" },
+    { key: "fileSize", label: "File Size", type: "text", placeholder: "2.5 MB" },
+  ],
 };
 
 // Maps section keys to their field configurations with actual CMS content keys
@@ -267,7 +283,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Badge", key: "badge", type: "text", placeholder: "Resources" },
       ],
       resources_list: [
-        { label: "Resources", key: "items", type: "array", arrayType: "items" },
+        { label: "Resources", key: "resources", type: "array", arrayType: "resources" },
       ],
     },
   },

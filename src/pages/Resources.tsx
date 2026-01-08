@@ -4,18 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { FileText, Download, ExternalLink, Search, BookOpen, FileSpreadsheet, Film, Calendar } from "lucide-react";
+import { FileText, Download, Search, BookOpen, Calendar } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Resource {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   category: string;
-  type: string;
-  downloadUrl?: string;
-  externalUrl?: string;
+  fileUrl?: string;
   date: string;
   fileSize?: string;
 }
@@ -29,84 +27,13 @@ const defaultResources: Resource[] = [
     id: "1",
     title: "GAHS Annual Report 2024",
     description: "Comprehensive overview of GAHS activities, achievements, and financial performance for 2024.",
-    category: "Reports",
-    type: "pdf",
-    downloadUrl: "#",
+    category: "Annual Reports",
     date: "January 2025",
     fileSize: "4.2 MB"
   },
-  {
-    id: "2",
-    title: "Healthcare Quality Standards Guide",
-    description: "Guidelines and standards for maintaining quality healthcare across all GAHS facilities.",
-    category: "Guidelines",
-    type: "pdf",
-    downloadUrl: "#",
-    date: "December 2024",
-    fileSize: "2.1 MB"
-  },
-  {
-    id: "3",
-    title: "Patient Care Training Manual",
-    description: "Training manual for healthcare professionals on patient care best practices.",
-    category: "Training Materials",
-    type: "pdf",
-    downloadUrl: "#",
-    date: "November 2024",
-    fileSize: "5.8 MB"
-  },
-  {
-    id: "4",
-    title: "GAHS Strategic Plan 2025-2030",
-    description: "Five-year strategic plan outlining GAHS vision, goals, and initiatives.",
-    category: "Reports",
-    type: "pdf",
-    downloadUrl: "#",
-    date: "October 2024",
-    fileSize: "3.4 MB"
-  },
-  {
-    id: "5",
-    title: "Health Awareness Video Series",
-    description: "Educational video series on preventive healthcare and wellness.",
-    category: "Multimedia",
-    type: "video",
-    externalUrl: "#",
-    date: "September 2024"
-  },
-  {
-    id: "6",
-    title: "Infection Prevention Handbook",
-    description: "Comprehensive guide on infection prevention and control measures.",
-    category: "Guidelines",
-    type: "pdf",
-    downloadUrl: "#",
-    date: "August 2024",
-    fileSize: "1.9 MB"
-  },
-  {
-    id: "7",
-    title: "GAHS Quarterly Newsletter - Q4 2024",
-    description: "Latest updates, news, and achievements from across the GAHS network.",
-    category: "Newsletters",
-    type: "pdf",
-    downloadUrl: "#",
-    date: "December 2024",
-    fileSize: "2.3 MB"
-  },
-  {
-    id: "8",
-    title: "Community Health Outreach Toolkit",
-    description: "Resources and materials for organizing community health programs.",
-    category: "Training Materials",
-    type: "spreadsheet",
-    downloadUrl: "#",
-    date: "July 2024",
-    fileSize: "1.2 MB"
-  },
 ];
 
-const categories = ["All", "Reports", "Guidelines", "Training Materials", "Newsletters", "Multimedia"];
+const categories = ["All", "Application Forms", "Annual Reports", "Monthly Reports", "Guidelines", "Training Materials", "Newsletters", "Other"];
 
 const ResourcesPage = () => {
   const { isLoading, getSection } = usePageContent("resources");
@@ -122,15 +49,6 @@ const ResourcesPage = () => {
                          resource.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "pdf": return FileText;
-      case "video": return Film;
-      case "spreadsheet": return FileSpreadsheet;
-      default: return BookOpen;
-    }
-  };
 
   if (isLoading) {
     return (
@@ -151,7 +69,7 @@ const ResourcesPage = () => {
     <Layout>
       <PageHero
         title="Resources"
-        subtitle="Access reports, guidelines, training materials, and other resources from Ghana Adventist Health Services."
+        subtitle="Access application forms, reports, guidelines, and other downloadable resources from Ghana Adventist Health Services."
         badge="Downloads & Materials"
       />
 
@@ -192,51 +110,50 @@ const ResourcesPage = () => {
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              {filteredResources.map((resource) => {
-                const Icon = getIcon(resource.type);
-                return (
-                  <Card key={resource.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
-                          <Icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{resource.title}</CardTitle>
-                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              {resource.date}
-                            </span>
-                            {resource.fileSize && (
-                              <span>• {resource.fileSize}</span>
-                            )}
-                          </div>
+              {filteredResources.map((resource, index) => (
+                <Card key={resource.id || index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{resource.title}</CardTitle>
+                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {resource.date}
+                          </span>
+                          {resource.fileSize && (
+                            <span>• {resource.fileSize}</span>
+                          )}
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground text-sm mb-4">{resource.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full">
-                          {resource.category}
-                        </span>
-                        {resource.downloadUrl ? (
-                          <Button size="sm" className="gap-2">
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground text-sm mb-4">{resource.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full">
+                        {resource.category}
+                      </span>
+                      {resource.fileUrl ? (
+                        <Button size="sm" className="gap-2" asChild>
+                          <a href={resource.fileUrl} download target="_blank" rel="noopener noreferrer">
                             <Download className="h-4 w-4" />
                             Download
-                          </Button>
-                        ) : resource.externalUrl ? (
-                          <Button size="sm" variant="outline" className="gap-2">
-                            <ExternalLink className="h-4 w-4" />
-                            View
-                          </Button>
-                        ) : null}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                          </a>
+                        </Button>
+                      ) : (
+                        <Button size="sm" disabled className="gap-2">
+                          <Download className="h-4 w-4" />
+                          Coming Soon
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </div>
@@ -251,7 +168,7 @@ const ResourcesPage = () => {
                 Need More Resources?
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
-                If you're looking for specific documents, training materials, or have questions about our resources, 
+                If you're looking for specific documents, application forms, or have questions about our resources, 
                 please get in touch with our team.
               </p>
               <Button asChild size="lg">

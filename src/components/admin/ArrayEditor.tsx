@@ -4,14 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Upload } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface ArrayFieldConfig {
   key: string;
   label: string;
-  type: "text" | "textarea" | "richtext" | "image" | "number" | "select";
+  type: "text" | "textarea" | "richtext" | "image" | "file" | "number" | "select";
   placeholder?: string;
   options?: { label: string; value: string }[];
 }
@@ -103,6 +103,109 @@ const ImageUploadInput = ({
       {value && (
         <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-muted">
           <img src={value} alt="Preview" className="w-full h-full object-cover" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const FileUploadInput = ({ 
+  value, 
+  onChange, 
+  placeholder,
+  inputId 
+}: { 
+  value: string; 
+  onChange: (url: string) => void; 
+  placeholder?: string;
+  inputId: string;
+}) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+    const { error } = await supabase.storage.from("cms-media").upload(fileName, file);
+
+    if (error) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(fileName);
+      onChange(urlData.publicUrl);
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
+    }
+    setIsUploading(false);
+    e.target.value = "";
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const getFileName = (url: string) => {
+    if (!url) return "";
+    const parts = url.split("/");
+    const fileName = parts[parts.length - 1];
+    // Remove timestamp prefix if present
+    return fileName.replace(/^\d+-/, "").replace(/_/g, " ");
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="icon" 
+          disabled={isUploading}
+          onClick={handleButtonClick}
+        >
+          {isUploading ? (
+            <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
+        </Button>
+        <input
+          ref={fileInputRef}
+          id={inputId}
+          type="file"
+          className="hidden"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          onChange={handleUpload}
+        />
+      </div>
+      {value && (
+        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+          <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+          <span className="text-sm truncate flex-1">{getFileName(value)}</span>
+          <a 
+            href={value} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            View
+          </a>
         </div>
       )}
     </div>
@@ -273,6 +376,13 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                               onChange={(url) => updateItem(index, field.key, url)}
                               placeholder={field.placeholder}
                               inputId={`img-upload-${index}-${field.key}`}
+                            />
+                          ) : field.type === "file" ? (
+                            <FileUploadInput
+                              value={String(fieldValue || "")}
+                              onChange={(url) => updateItem(index, field.key, url)}
+                              placeholder={field.placeholder}
+                              inputId={`file-upload-${index}-${field.key}`}
                             />
                           ) : field.type === "textarea" ? (
                             <Textarea
