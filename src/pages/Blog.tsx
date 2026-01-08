@@ -1,11 +1,25 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
 import { Calendar, User, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { usePageContent } from "@/hooks/useCMS";
 
-// Sample blog posts
-const blogPosts = [
+interface BlogPost {
+  id?: string;
+  title: string;
+  excerpt: string;
+  content?: string;
+  category: string;
+  author: string;
+  date: string;
+  readTime: string;
+  image?: string;
+}
+
+// Fallback data
+const defaultPosts: BlogPost[] = [
   {
     title: "The Importance of Preventive Healthcare in Ghana",
     excerpt: "Learn why preventive care is essential for maintaining good health and reducing healthcare costs in the long term.",
@@ -30,41 +44,44 @@ const blogPosts = [
     date: "December 15, 2023",
     readTime: "6 min read",
   },
-  {
-    title: "New Developments in Our Training Programs",
-    excerpt: "Updates on curriculum enhancements and new facilities at GAHS nursing and health training colleges.",
-    category: "Institutional Updates",
-    author: "Dr. Ama Boateng",
-    date: "November 30, 2023",
-    readTime: "4 min read",
-  },
-  {
-    title: "Managing Chronic Diseases: Tips and Resources",
-    excerpt: "Expert advice on managing diabetes, hypertension, and other chronic conditions for better quality of life.",
-    category: "Health Education",
-    author: "Dr. Samuel Owusu",
-    date: "November 20, 2023",
-    readTime: "8 min read",
-  },
-  {
-    title: "GAHS Partners with CHAG for Healthcare Excellence",
-    excerpt: "Our collaboration with the Christian Health Association of Ghana continues to strengthen healthcare delivery.",
-    category: "Partnership",
-    author: "GAHS Communications",
-    date: "November 10, 2023",
-    readTime: "3 min read",
-  },
 ];
 
-const categories = ["All", "Health Education", "Healthcare Services", "Faith & Health", "Institutional Updates", "Partnership"];
-
 const BlogPage = () => {
+  const { getSection, isLoading } = usePageContent("blog");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  // Get data from CMS or use defaults
+  const hero = getSection<{ title: string; subtitle: string; badge: string }>("hero") || {
+    title: "Blog & News",
+    subtitle: "Stay updated with health education articles, institutional news, and faith-based wellness content.",
+    badge: "Latest Updates"
+  };
+
+  const postsData = getSection<{ posts: BlogPost[] }>("posts");
+  const posts = postsData?.posts && postsData.posts.length > 0 ? postsData.posts : defaultPosts;
+
+  // Extract unique categories
+  const categories = ["All", ...Array.from(new Set(posts.map(p => p.category)))];
+
+  // Filter posts by category
+  const filteredPosts = selectedCategory === "All" 
+    ? posts 
+    : posts.filter(p => p.category === selectedCategory);
+
+  // Generate slug from title
+  const getPostSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   return (
     <Layout>
       <PageHero
-        title="Blog & News"
-        subtitle="Stay updated with health education articles, institutional news, and faith-based wellness content."
-        badge="Latest Updates"
+        title={hero.title}
+        subtitle={hero.subtitle}
+        badge={hero.badge}
       />
 
       {/* Blog Section */}
@@ -75,58 +92,76 @@ const BlogPage = () => {
             {categories.map((category) => (
               <button
                 key={category}
-                className="filter-pill"
+                onClick={() => setSelectedCategory(category)}
+                className={`filter-pill ${selectedCategory === category ? 'bg-primary text-primary-foreground' : ''}`}
               >
                 {category}
               </button>
             ))}
           </div>
 
-          {/* Blog posts grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post, index) => (
-              <article
-                key={index}
-                className="blog-card group cursor-pointer"
-              >
-                {/* Image placeholder */}
-                <div className="h-48 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
-                  <span className="relative px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                    {post.category}
-                  </span>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
-                    {post.excerpt}
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-border pt-4">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span className="truncate max-w-[120px]">{post.author}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>{post.readTime}</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <>
+              {/* Blog posts grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredPosts.map((post, index) => (
+                  <Link
+                    key={index}
+                    to={`/blog/${getPostSlug(post.title)}`}
+                    className="block"
+                  >
+                    <article className="blog-card group cursor-pointer h-full">
+                      {/* Image */}
+                      <div className="h-48 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center relative overflow-hidden">
+                        {post.image ? (
+                          <img 
+                            src={post.image} 
+                            alt={post.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
+                        )}
+                        <span className="absolute top-4 left-4 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                          {post.category}
+                        </span>
+                      </div>
+                      
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-border pt-4">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span className="truncate max-w-[120px]">{post.author}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{post.readTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </Link>
+                ))}
+              </div>
 
-          {/* Load more */}
-          <div className="text-center mt-12">
-            <Button variant="outline" className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              Load More Articles
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
+              {filteredPosts.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No posts found in this category.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
 
