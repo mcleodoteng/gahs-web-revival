@@ -11,6 +11,7 @@ import Services from "./pages/Services";
 import Institutions from "./pages/Institutions";
 import Portfolio from "./pages/Portfolio";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Gallery from "./pages/Gallery";
 import Resources from "./pages/Resources";
 import Testimonials from "./pages/Testimonials";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/institutions" element={<Institutions />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/testimonials" element={<Testimonials />} />

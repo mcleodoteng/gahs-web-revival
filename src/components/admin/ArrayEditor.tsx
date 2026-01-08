@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface ArrayFieldConfig {
   key: string;
   label: string;
-  type: "text" | "textarea" | "image" | "number" | "select";
+  type: "text" | "textarea" | "richtext" | "image" | "number" | "select";
   placeholder?: string;
   options?: { label: string; value: string }[];
 }
@@ -26,14 +26,17 @@ interface ArrayEditorProps {
 const ImageUploadInput = ({ 
   value, 
   onChange, 
-  placeholder 
+  placeholder,
+  inputId 
 }: { 
   value: string; 
   onChange: (url: string) => void; 
-  placeholder?: string 
+  placeholder?: string;
+  inputId: string;
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,6 +65,10 @@ const ImageUploadInput = ({
     e.target.value = "";
   };
 
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
@@ -71,19 +78,22 @@ const ImageUploadInput = ({
           placeholder={placeholder}
           className="flex-1"
         />
-        <Label htmlFor={`img-upload-${Math.random()}`} className="cursor-pointer">
-          <Button type="button" variant="outline" size="icon" disabled={isUploading} asChild>
-            <span>
-              {isUploading ? (
-                <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
-              ) : (
-                <Upload className="h-4 w-4" />
-              )}
-            </span>
-          </Button>
-        </Label>
-        <Input
-          id={`img-upload-${Math.random()}`}
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="icon" 
+          disabled={isUploading}
+          onClick={handleButtonClick}
+        >
+          {isUploading ? (
+            <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
+        </Button>
+        <input
+          ref={fileInputRef}
+          id={inputId}
           type="file"
           className="hidden"
           accept="image/*"
@@ -262,6 +272,7 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                               value={String(fieldValue || "")}
                               onChange={(url) => updateItem(index, field.key, url)}
                               placeholder={field.placeholder}
+                              inputId={`img-upload-${index}-${field.key}`}
                             />
                           ) : field.type === "textarea" ? (
                             <Textarea
@@ -270,6 +281,14 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                               placeholder={field.placeholder}
                               rows={3}
                               className="text-sm"
+                            />
+                          ) : field.type === "richtext" ? (
+                            <Textarea
+                              value={String(fieldValue || "")}
+                              onChange={(e) => updateItem(index, field.key, e.target.value)}
+                              placeholder={field.placeholder}
+                              rows={12}
+                              className="text-sm font-mono"
                             />
                           ) : field.type === "number" ? (
                             <Input

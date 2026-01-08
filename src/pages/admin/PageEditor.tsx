@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,6 +106,7 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
   posts: [
     { key: "title", label: "Title", type: "text", placeholder: "Blog post title" },
     { key: "excerpt", label: "Excerpt", type: "textarea", placeholder: "Brief summary..." },
+    { key: "content", label: "Content", type: "richtext", placeholder: "Full blog post content (supports markdown)..." },
     { key: "category", label: "Category", type: "text", placeholder: "News" },
     { key: "author", label: "Author", type: "text", placeholder: "Author name" },
     { key: "date", label: "Date", type: "text", placeholder: "January 2025" },
@@ -360,11 +361,13 @@ interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
   placeholder?: string;
+  fieldId: string;
 }
 
-const ImageUploadField = ({ value, onChange, placeholder }: ImageUploadProps) => {
+const ImageUploadField = ({ value, onChange, placeholder, fieldId }: ImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -393,6 +396,10 @@ const ImageUploadField = ({ value, onChange, placeholder }: ImageUploadProps) =>
     e.target.value = "";
   };
 
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
@@ -402,19 +409,22 @@ const ImageUploadField = ({ value, onChange, placeholder }: ImageUploadProps) =>
           placeholder={placeholder}
           className="flex-1"
         />
-        <Label htmlFor="image-upload" className="cursor-pointer">
-          <Button type="button" variant="outline" size="icon" disabled={isUploading} asChild>
-            <span>
-              {isUploading ? (
-                <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
-              ) : (
-                <Upload className="h-4 w-4" />
-              )}
-            </span>
-          </Button>
-        </Label>
-        <Input
-          id="image-upload"
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="icon" 
+          disabled={isUploading}
+          onClick={handleButtonClick}
+        >
+          {isUploading ? (
+            <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
+        </Button>
+        <input
+          ref={fileInputRef}
+          id={fieldId}
           type="file"
           className="hidden"
           accept="image/*"
@@ -715,6 +725,7 @@ const PageEditor = () => {
                           value={String(editFormData[field.key] || "")}
                           onChange={(url) => setEditFormData({ ...editFormData, [field.key]: url })}
                           placeholder={field.placeholder}
+                          fieldId={`image-upload-${editingSection?.id || 'new'}-${field.key}`}
                         />
                       ) : field.type === "textarea" ? (
                         <Textarea
