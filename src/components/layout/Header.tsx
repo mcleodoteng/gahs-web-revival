@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, Mail, ChevronDown, LogIn } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, LogIn, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 const navigation = [
@@ -33,7 +34,20 @@ const navigation = [
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const isActive = (href: string) => location.pathname === href;
 
@@ -133,10 +147,19 @@ export const Header = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/auth">
+            <Link to={isLoggedIn ? "/admin" : "/auth"}>
               <Button className="gap-2 bg-primary hover:bg-primary-dark">
-                <LogIn className="h-4 w-4" />
-                Login
+                {isLoggedIn ? (
+                  <>
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    Login
+                  </>
+                )}
               </Button>
             </Link>
           </div>
@@ -228,10 +251,19 @@ export const Header = () => {
                   transition={{ delay: navigation.length * 0.05 }}
                   className="pt-4 border-t border-border mt-4"
                 >
-                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Link to={isLoggedIn ? "/admin" : "/auth"} onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full gap-2 bg-primary hover:bg-primary-dark">
-                      <LogIn className="h-4 w-4" />
-                      Login
+                      {isLoggedIn ? (
+                        <>
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </>
+                      ) : (
+                        <>
+                          <LogIn className="h-4 w-4" />
+                          Login
+                        </>
+                      )}
                     </Button>
                   </Link>
                 </motion.div>
