@@ -1,25 +1,51 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Heart, Users, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Heart, Users, Building2, ChevronLeft, ChevronRight, Star, Award, Target, Shield, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { usePageContent } from "@/hooks/useCMS";
 
-const slides = [
+interface Slide {
+  id: string;
+  image: string;
+  title: string;
+  highlight: string;
+  description: string;
+}
+
+interface Stat {
+  icon: string;
+  value: string;
+  label: string;
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Building2,
+  Users,
+  Heart,
+  Star,
+  Award,
+  Target,
+  Shield,
+  Globe,
+};
+
+const defaultSlides: Slide[] = [
   {
-    id: 1,
+    id: "1",
     image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1920&q=80",
     title: "Compassionate Healthcare",
     highlight: "Rooted in Faith",
     description: "Ghana Adventist Health Services delivers quality healthcare through a network of hospitals, clinics, and training institutions across Ghana.",
   },
   {
-    id: 2,
+    id: "2",
     image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=1920&q=80",
     title: "Excellence in",
     highlight: "Medical Training",
     description: "Producing quality health professionals through our network of 7 training institutions dedicated to shaping the future of healthcare in Ghana.",
   },
   {
-    id: 3,
+    id: "3",
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1920&q=80",
     title: "Healing Communities",
     highlight: "Transforming Lives",
@@ -27,15 +53,21 @@ const slides = [
   },
 ];
 
-const stats = [
-  { icon: Building2, value: "43+", label: "Health Institutions" },
-  { icon: Users, value: "7", label: "Training Colleges" },
-  { icon: Heart, value: "30+", label: "Years of Service" },
+const defaultStats: Stat[] = [
+  { icon: "Building2", value: "43+", label: "Health Institutions" },
+  { icon: "Users", value: "7", label: "Training Colleges" },
+  { icon: "Heart", value: "30+", label: "Years of Service" },
 ];
 
 export const HeroCarousel = () => {
+  const { sections, isLoading } = usePageContent("home");
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
+
+  // Get slides and stats from CMS or use defaults
+  const heroContent = sections.find(s => s.section_key === "hero")?.content as { slides?: Slide[]; stats?: Stat[] } | undefined;
+  const slides: Slide[] = heroContent?.slides?.length ? heroContent.slides : defaultSlides;
+  const stats: Stat[] = heroContent?.stats?.length ? heroContent.stats : defaultStats;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -43,7 +75,7 @@ export const HeroCarousel = () => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   const paginate = (newDirection: number) => {
     setDirection(newDirection);
@@ -181,19 +213,22 @@ export const HeroCarousel = () => {
             transition={{ delay: 0.6 }}
             className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
           >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.7 + index * 0.1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:bg-white/15 transition-all group"
-              >
-                <stat.icon className="h-7 w-7 text-gold mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-2xl font-bold text-white mb-0.5">{stat.value}</p>
-                <p className="text-white/70 text-xs">{stat.label}</p>
-              </motion.div>
-            ))}
+            {stats.map((stat, index) => {
+              const IconComponent = iconMap[stat.icon] || Heart;
+              return (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:bg-white/15 transition-all group"
+                >
+                  <IconComponent className="h-7 w-7 text-gold mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="text-2xl font-bold text-white mb-0.5">{stat.value}</p>
+                  <p className="text-white/70 text-xs">{stat.label}</p>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </div>
