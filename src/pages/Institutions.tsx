@@ -1,8 +1,16 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Institution {
   name: string;
@@ -36,10 +44,17 @@ const defaultTraining: Institution[] = [
   { name: "S.D.A. College of Health, Barekese", location: "Barekese", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE" },
 ];
 
+type SortField = "name" | "location" | "region" | "union" | "type" | "status";
+type SortDirection = "asc" | "desc";
+
 const InstitutionsPage = () => {
   const { sections, isLoading } = usePageContent("institutions");
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const itemsPerPage = 10;
 
   // Get data from CMS or use defaults
   const heroContent = sections.find(s => s.section_key === "hero")?.content as { title?: string; subtitle?: string; badge?: string } | undefined;
@@ -102,10 +117,43 @@ const InstitutionsPage = () => {
       );
     }
 
+    // Sort institutions
+    institutions.sort((a, b) => {
+      const aValue = a[sortField].toLowerCase();
+      const bValue = b[sortField].toLowerCase();
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
     return institutions;
   };
 
-  const institutions = getInstitutions();
+  const allInstitutions = getInstitutions();
+  const totalPages = Math.ceil(allInstitutions.length / itemsPerPage);
+  const institutions = allInstitutions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1);
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="h-4 w-4 text-primary" />
+    ) : (
+      <ChevronDown className="h-4 w-4 text-primary" />
+    );
+  };
 
   if (isLoading) {
     return (
@@ -165,7 +213,8 @@ const InstitutionsPage = () => {
         <div className="container">
           <div className="mb-6 flex items-center justify-between">
             <p className="text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{institutions.length}</span> institutions
+              Showing <span className="font-semibold text-foreground">{institutions.length}</span> of{" "}
+              <span className="font-semibold text-foreground">{allInstitutions.length}</span> institutions
             </p>
           </div>
 
@@ -174,12 +223,60 @@ const InstitutionsPage = () => {
             <table className="institution-table">
               <thead>
                 <tr>
-                  <th>Institution Name</th>
-                  <th>Location</th>
-                  <th>Region</th>
-                  <th>Union</th>
-                  <th>Type</th>
-                  <th>Status</th>
+                  <th 
+                    onClick={() => handleSort("name")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Institution Name
+                      {getSortIcon("name")}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("location")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Location
+                      {getSortIcon("location")}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("region")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Region
+                      {getSortIcon("region")}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("union")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Union
+                      {getSortIcon("union")}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("type")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Type
+                      {getSortIcon("type")}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("status")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Status
+                      {getSortIcon("status")}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -251,6 +348,60 @@ const InstitutionsPage = () => {
               </div>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first, last, current, and adjacent pages
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (
+                      (page === 2 && currentPage > 3) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <span className="px-2">...</span>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
       </section>
     </Layout>

@@ -1,10 +1,11 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { ArrowRight, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePageContent } from "@/hooks/useCMS";
 import directorImage from "@/assets/team/dr-james-antwi.jpg";
+import { useRef, useEffect } from "react";
 
 interface DirectorContentRaw {
   director_name?: string;
@@ -25,6 +26,35 @@ interface DirectorContent {
 
 export const DirectorMessage = () => {
   const { getSection } = usePageContent("home");
+  const sectionRef = useRef<HTMLDivElement>(null);
+  
+  // Mouse position values for 3D effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  // Smooth spring animations for the background movement
+  const springConfig = { stiffness: 100, damping: 30 };
+  const backgroundX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-30, 30]), springConfig);
+  const backgroundY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-30, 30]), springConfig);
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [5, -5]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-5, 5]), springConfig);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      mouseX.set(x);
+      mouseY.set(y);
+    };
+
+    const section = sectionRef.current;
+    if (section) {
+      section.addEventListener("mousemove", handleMouseMove);
+      return () => section.removeEventListener("mousemove", handleMouseMove);
+    }
+  }, [mouseX, mouseY]);
   
   const rawContent = getSection<DirectorContentRaw>("director_message", {});
   
@@ -37,7 +67,43 @@ export const DirectorMessage = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-br from-primary-light/40 via-background to-secondary-light/30 overflow-hidden">
+    <section 
+      ref={sectionRef}
+      className="py-16 md:py-24 bg-gradient-to-br from-primary-light/40 via-background to-secondary-light/30 overflow-hidden relative"
+      style={{ perspective: "1000px" }}
+    >
+      {/* 3D Moving Background Elements */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{ x: backgroundX, y: backgroundY }}
+      >
+        <div className="absolute top-10 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
+      </motion.div>
+      
+      {/* Floating geometric shapes */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ rotateX, rotateY }}
+      >
+        <motion.div 
+          className="absolute top-20 left-20 w-4 h-4 bg-primary/20 rotate-45"
+          style={{ x: useTransform(backgroundX, v => v * 0.5), y: useTransform(backgroundY, v => v * 0.5) }}
+        />
+        <motion.div 
+          className="absolute top-40 right-40 w-6 h-6 border-2 border-secondary/30 rounded-full"
+          style={{ x: useTransform(backgroundX, v => v * 0.8), y: useTransform(backgroundY, v => v * 0.8) }}
+        />
+        <motion.div 
+          className="absolute bottom-32 left-1/4 w-3 h-3 bg-accent/30 rounded-full"
+          style={{ x: useTransform(backgroundX, v => v * 0.3), y: useTransform(backgroundY, v => v * 0.3) }}
+        />
+        <motion.div 
+          className="absolute bottom-40 right-1/4 w-5 h-5 border-2 border-primary/20 rotate-45"
+          style={{ x: useTransform(backgroundX, v => v * 0.6), y: useTransform(backgroundY, v => v * 0.6) }}
+        />
+      </motion.div>
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

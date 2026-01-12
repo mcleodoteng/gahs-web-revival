@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, Mail, ChevronDown, LogIn, LayoutDashboard } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, LogIn, LayoutDashboard, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
@@ -147,6 +147,16 @@ export const Header = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
+            <a
+              href="https://webmail.infotechsystemsonline.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Webmail
+              </Button>
+            </a>
             <Link to={isLoggedIn ? "/admin" : "/auth"}>
               <Button className="gap-2 bg-primary hover:bg-primary-dark">
                 {isLoggedIn ? (
@@ -249,8 +259,19 @@ export const Header = () => {
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: navigation.length * 0.05 }}
-                  className="pt-4 border-t border-border mt-4"
+                  className="pt-4 border-t border-border mt-4 space-y-2"
                 >
+                  <a
+                    href="https://webmail.infotechsystemsonline.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Webmail
+                    </Button>
+                  </a>
                   <Link to={isLoggedIn ? "/admin" : "/auth"} onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full gap-2 bg-primary hover:bg-primary-dark">
                       {isLoggedIn ? (
