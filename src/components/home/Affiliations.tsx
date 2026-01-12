@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 
@@ -9,7 +9,8 @@ const affiliations = [
     description: "GAHS is a proud member of CHAG, coordinating with the Ghana Ministry of Health.",
     url: "https://www.chag.org.gh",
     color: "from-blue-500 to-blue-600",
-    initials: "CHAG",
+    bgColor: "bg-blue-50",
+    logo: "https://www.chag.org.gh/wp-content/uploads/2020/04/CHAG-Logo.png",
   },
   {
     name: "Seventh-day Adventist Church",
@@ -17,7 +18,8 @@ const affiliations = [
     description: "Our health ministry is an integral part of the SDA Church's global mission.",
     url: "https://www.adventist.org",
     color: "from-green-500 to-green-600",
-    initials: "SDA",
+    bgColor: "bg-green-50",
+    logo: "https://www.adventist.org/wp-content/uploads/2019/06/logomark-tm.svg",
   },
   {
     name: "Ghana Ministry of Health",
@@ -25,7 +27,8 @@ const affiliations = [
     description: "We operate within national health policies and strategies.",
     url: "https://www.moh.gov.gh",
     color: "from-amber-500 to-amber-600",
-    initials: "MOH",
+    bgColor: "bg-amber-50",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Coat_of_arms_of_Ghana.svg/200px-Coat_of_arms_of_Ghana.svg.png",
   },
 ];
 
@@ -53,7 +56,8 @@ export const Affiliations = () => {
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex flex-wrap justify-center items-start gap-12 lg:gap-16">
           {affiliations.map((affiliation, index) => (
             <motion.div
               key={affiliation.name}
@@ -65,66 +69,72 @@ export const Affiliations = () => {
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              {/* Circular Logo */}
-              <motion.a
-                href={affiliation.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`relative flex items-center justify-center w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${affiliation.color} text-white font-bold text-lg md:text-xl shadow-lg cursor-pointer`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {affiliation.initials}
-                
-                {/* Pulse ring effect */}
+              {/* Container for smooth transition */}
+              <div className="relative w-72 flex justify-center">
+                {/* Circular Logo - Hidden on hover */}
                 <motion.div
-                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${affiliation.color} opacity-30`}
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </motion.a>
+                  className={`w-28 h-28 rounded-full ${affiliation.bgColor} border-2 border-border shadow-lg flex items-center justify-center overflow-hidden cursor-pointer`}
+                  animate={{
+                    opacity: hoveredIndex === index ? 0 : 1,
+                    scale: hoveredIndex === index ? 0.8 : 1,
+                  }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <img
+                    src={affiliation.logo}
+                    alt={affiliation.name}
+                    className="w-20 h-20 object-contain"
+                    onError={(e) => {
+                      // Fallback to initials if image fails
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.innerHTML = `<span class="text-xl font-bold bg-gradient-to-br ${affiliation.color} bg-clip-text text-transparent">${affiliation.shortName}</span>`;
+                    }}
+                  />
+                </motion.div>
 
-              {/* Expanded Card on Hover */}
-              <AnimatePresence>
-                {hoveredIndex === index && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-4 w-72"
-                  >
-                    <a
-                      href={affiliation.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block bg-card rounded-xl p-5 border border-border shadow-xl hover:shadow-2xl transition-shadow"
-                    >
-                      {/* Arrow pointer */}
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card border-l border-t border-border rotate-45" />
-                      
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${affiliation.color} flex items-center justify-center text-white text-xs font-bold`}>
-                          {affiliation.initials}
-                        </div>
-                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-base font-semibold text-foreground mb-2">
-                        {affiliation.name}
-                      </h3>
-                      <p className="text-muted-foreground text-sm">
-                        {affiliation.description}
-                      </p>
-                    </a>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                {/* Expanded Card - Shown on hover */}
+                <motion.a
+                  href={affiliation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-0 left-0 right-0 bg-card rounded-xl p-5 border border-border shadow-xl"
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{
+                    opacity: hoveredIndex === index ? 1 : 0,
+                    scale: hoveredIndex === index ? 1 : 0.9,
+                    y: hoveredIndex === index ? 0 : 20,
+                    pointerEvents: hoveredIndex === index ? "auto" : "none",
+                  }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-12 h-12 rounded-full ${affiliation.bgColor} flex items-center justify-center overflow-hidden`}>
+                      <img
+                        src={affiliation.logo}
+                        alt={affiliation.name}
+                        className="w-9 h-9 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-bold bg-gradient-to-br ${affiliation.color} bg-clip-text text-transparent">${affiliation.shortName}</span>`;
+                        }}
+                      />
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-2">
+                    {affiliation.name}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {affiliation.description}
+                  </p>
+                </motion.a>
+              </div>
             </motion.div>
           ))}
         </div>
 
         {/* Mobile: Show all cards */}
-        <div className="md:hidden mt-8 space-y-4">
+        <div className="md:hidden space-y-4">
           {affiliations.map((affiliation, index) => (
             <motion.a
               key={`mobile-${affiliation.name}`}
@@ -137,14 +147,22 @@ export const Affiliations = () => {
               transition={{ duration: 0.4, delay: index * 0.1 }}
               className="flex items-center gap-4 bg-card rounded-xl p-4 border border-border shadow-sm"
             >
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${affiliation.color} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
-                {affiliation.initials}
+              <div className={`w-14 h-14 rounded-full ${affiliation.bgColor} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+                <img
+                  src={affiliation.logo}
+                  alt={affiliation.name}
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = `<span class="text-sm font-bold bg-gradient-to-br ${affiliation.color} bg-clip-text text-transparent">${affiliation.shortName}</span>`;
+                  }}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground truncate">
                   {affiliation.name}
                 </h3>
-                <p className="text-muted-foreground text-xs line-clamp-1">
+                <p className="text-muted-foreground text-xs line-clamp-2">
                   {affiliation.description}
                 </p>
               </div>
