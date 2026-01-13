@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OptimizedImage } from "@/components/shared/OptimizedImage";
 
 interface GalleryImage {
   id: string;
@@ -21,18 +22,18 @@ interface GalleryContent {
 }
 
 const defaultGalleryImages: GalleryImage[] = [
-  { id: "1", src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800", title: "Asamang SDA Hospital", category: "Hospitals", description: "Main entrance of Asamang SDA Hospital" },
-  { id: "2", src: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=800", title: "Medical Team Meeting", category: "Events", description: "Annual strategic planning session" },
-  { id: "3", src: "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=800", title: "Nursing Students", category: "Training", description: "Practical training session" },
-  { id: "4", src: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800", title: "Hospital Ward", category: "Facilities", description: "Modern patient care facilities" },
-  { id: "5", src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800", title: "Laboratory Services", category: "Facilities", description: "State-of-the-art diagnostic lab" },
-  { id: "6", src: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800", title: "Community Outreach", category: "Events", description: "Health screening program" },
-  { id: "7", src: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800", title: "Medical Consultation", category: "Services", description: "Patient consultation services" },
-  { id: "8", src: "https://images.unsplash.com/photo-1581056771107-24ca5f033842?w=800", title: "Pharmacy Services", category: "Services", description: "GAHS Medical Store" },
-  { id: "9", src: "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800", title: "Graduation Ceremony", category: "Training", description: "Nursing college graduation" },
-  { id: "10", src: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=800", title: "Surgery Department", category: "Facilities", description: "Modern surgical theater" },
-  { id: "11", src: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800", title: "Maternity Ward", category: "Facilities", description: "Mother and child care" },
-  { id: "12", src: "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=800", title: "Staff Training", category: "Training", description: "Continuous professional development" },
+  { id: "1", src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&q=75", title: "Asamang SDA Hospital", category: "Hospitals", description: "Main entrance of Asamang SDA Hospital" },
+  { id: "2", src: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=800&auto=format&q=75", title: "Medical Team Meeting", category: "Events", description: "Annual strategic planning session" },
+  { id: "3", src: "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=800&auto=format&q=75", title: "Nursing Students", category: "Training", description: "Practical training session" },
+  { id: "4", src: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800&auto=format&q=75", title: "Hospital Ward", category: "Facilities", description: "Modern patient care facilities" },
+  { id: "5", src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&q=75", title: "Laboratory Services", category: "Facilities", description: "State-of-the-art diagnostic lab" },
+  { id: "6", src: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&q=75", title: "Community Outreach", category: "Events", description: "Health screening program" },
+  { id: "7", src: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&auto=format&q=75", title: "Medical Consultation", category: "Services", description: "Patient consultation services" },
+  { id: "8", src: "https://images.unsplash.com/photo-1581056771107-24ca5f033842?w=800&auto=format&q=75", title: "Pharmacy Services", category: "Services", description: "GAHS Medical Store" },
+  { id: "9", src: "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=800&auto=format&q=75", title: "Graduation Ceremony", category: "Training", description: "Nursing college graduation" },
+  { id: "10", src: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=800&auto=format&q=75", title: "Surgery Department", category: "Facilities", description: "Modern surgical theater" },
+  { id: "11", src: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800&auto=format&q=75", title: "Maternity Ward", category: "Facilities", description: "Mother and child care" },
+  { id: "12", src: "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=800&auto=format&q=75", title: "Staff Training", category: "Training", description: "Continuous professional development" },
 ];
 
 const categories = ["All", "Hospitals", "Facilities", "Events", "Training", "Services"];
@@ -114,10 +115,12 @@ const GalleryPage = () => {
                   >
                     <CardContent className="p-0 relative">
                       <div className="aspect-square overflow-hidden">
-                        <img
+                        <OptimizedImage
                           src={image.src}
                           alt={image.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          width={400}
+                          className="w-full h-full group-hover:scale-110 transition-transform duration-500"
+                          containerClassName="w-full h-full"
                         />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
@@ -176,6 +179,7 @@ const GalleryPage = () => {
                 src={filteredImages[lightboxIndex].src}
                 alt={filteredImages[lightboxIndex].title}
                 className="max-w-full max-h-[70vh] object-contain mx-auto"
+                loading="eager"
               />
               <div className="text-center mt-4">
                 <p className="text-white text-xl font-semibold">{filteredImages[lightboxIndex].title}</p>

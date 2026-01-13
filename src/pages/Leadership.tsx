@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Mail, Phone, Users, Award, Heart } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OptimizedImage } from "@/components/shared/OptimizedImage";
 
 // Default team images as fallback
 import directorImageDefault from "@/assets/team/dr-james-antwi.jpg";
@@ -145,10 +146,13 @@ const Leadership = () => {
             <div className="lg:col-span-2">
               <Card className="overflow-hidden border-0 shadow-elegant">
                 <div className="aspect-[4/5] overflow-hidden">
-                  <img 
-                    src={getDirectorImage()} 
+                  <OptimizedImage
+                    src={getDirectorImage()}
                     alt={directorContent.name}
-                    className="w-full h-full object-cover object-top"
+                    className="w-full h-full"
+                    containerClassName="w-full h-full"
+                    objectPosition="top"
+                    priority
                   />
                 </div>
                 <CardContent className="p-6 text-center bg-background">
@@ -256,10 +260,13 @@ const Leadership = () => {
                 <CardContent className="p-0">
                   {/* Photo */}
                   <div className="aspect-square overflow-hidden">
-                    <img 
-                      src={getTeamMemberImage(member, index)} 
+                    <OptimizedImage
+                      src={getTeamMemberImage(member, index)}
                       alt={member.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      width={400}
+                      className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      containerClassName="w-full h-full"
+                      objectPosition="top"
                     />
                   </div>
                   
