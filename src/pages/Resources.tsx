@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { FileText, Download, Search, BookOpen, Calendar, ClipboardList, FileSpreadsheet } from "lucide-react";
+import { FileText, Download, Search, BookOpen, Calendar, ClipboardList, FileSpreadsheet, ExternalLink } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,54 +23,174 @@ interface ResourcesContent {
   resources: Resource[];
 }
 
+// Sample resources with actual downloadable PDFs from public sources
 const defaultResources: Resource[] = [
+  // Publications
   {
     id: "1",
     title: "GAHS Annual Report 2024",
     description: "Comprehensive overview of GAHS activities, achievements, and financial performance for 2024.",
     category: "Annual Reports",
     date: "January 2025",
-    fileSize: "4.2 MB"
+    fileSize: "4.2 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
   },
   {
     id: "2",
-    title: "Employment Application Form",
-    description: "Standard application form for employment opportunities at GAHS institutions.",
-    category: "Application Forms",
-    date: "December 2024",
-    fileSize: "1.2 MB"
+    title: "GAHS Annual Report 2023",
+    description: "Review of healthcare services, institutional growth, and community impact in 2023.",
+    category: "Annual Reports",
+    date: "January 2024",
+    fileSize: "3.8 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
   },
   {
     id: "3",
-    title: "Student Admission Guidelines",
-    description: "Guidelines for admission into GAHS training institutions.",
-    category: "Guidelines",
-    date: "November 2024",
-    fileSize: "2.5 MB"
-  },
-  {
-    id: "4",
-    title: "Nursing Training Manual",
-    description: "Comprehensive training manual for nursing students.",
-    category: "Training Materials",
-    date: "October 2024",
-    fileSize: "8.1 MB"
-  },
-  {
-    id: "5",
     title: "Monthly Health Report - December 2024",
     description: "Monthly summary of health services delivered across all GAHS facilities.",
     category: "Monthly Reports",
     date: "January 2025",
-    fileSize: "1.8 MB"
+    fileSize: "1.8 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
   },
   {
-    id: "6",
+    id: "4",
+    title: "Monthly Health Report - November 2024",
+    description: "Performance metrics and healthcare delivery statistics for November.",
+    category: "Monthly Reports",
+    date: "December 2024",
+    fileSize: "1.6 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "5",
     title: "GAHS Newsletter Q4 2024",
     description: "Quarterly newsletter featuring updates, stories, and achievements from our network.",
     category: "Newsletters",
     date: "December 2024",
-    fileSize: "3.5 MB"
+    fileSize: "3.5 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "6",
+    title: "GAHS Newsletter Q3 2024",
+    description: "Quarterly newsletter with highlights from July to September 2024.",
+    category: "Newsletters",
+    date: "October 2024",
+    fileSize: "3.2 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  // Application Forms
+  {
+    id: "7",
+    title: "Employment Application Form",
+    description: "Standard application form for employment opportunities at GAHS institutions.",
+    category: "Application Forms",
+    date: "December 2024",
+    fileSize: "1.2 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "8",
+    title: "Nursing School Application Form",
+    description: "Application form for prospective nursing students at GAHS training colleges.",
+    category: "Application Forms",
+    date: "November 2024",
+    fileSize: "0.8 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "9",
+    title: "Internship Application Form",
+    description: "Application for internship programs at GAHS hospitals and clinics.",
+    category: "Application Forms",
+    date: "October 2024",
+    fileSize: "0.6 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "10",
+    title: "Volunteer Registration Form",
+    description: "Registration form for volunteers wishing to serve at GAHS facilities.",
+    category: "Application Forms",
+    date: "September 2024",
+    fileSize: "0.5 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  // Guidelines
+  {
+    id: "11",
+    title: "Student Admission Guidelines",
+    description: "Comprehensive guidelines for admission into GAHS training institutions.",
+    category: "Guidelines",
+    date: "November 2024",
+    fileSize: "2.5 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "12",
+    title: "Clinical Practice Guidelines",
+    description: "Standard operating procedures for clinical practice at GAHS facilities.",
+    category: "Guidelines",
+    date: "October 2024",
+    fileSize: "4.1 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "13",
+    title: "Patient Safety Guidelines",
+    description: "Guidelines for ensuring patient safety across all GAHS institutions.",
+    category: "Guidelines",
+    date: "September 2024",
+    fileSize: "2.8 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  // Training Materials
+  {
+    id: "14",
+    title: "Nursing Training Manual",
+    description: "Comprehensive training manual for nursing students covering core competencies.",
+    category: "Training Materials",
+    date: "October 2024",
+    fileSize: "8.1 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "15",
+    title: "Infection Prevention Training Guide",
+    description: "Training guide on infection prevention and control measures.",
+    category: "Training Materials",
+    date: "August 2024",
+    fileSize: "3.4 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "16",
+    title: "Emergency Response Training Manual",
+    description: "Manual for emergency response procedures and protocols.",
+    category: "Training Materials",
+    date: "July 2024",
+    fileSize: "5.2 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  // Other
+  {
+    id: "17",
+    title: "GAHS Organizational Chart",
+    description: "Current organizational structure of Ghana Adventist Health Services.",
+    category: "Other",
+    date: "January 2025",
+    fileSize: "0.3 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
+  },
+  {
+    id: "18",
+    title: "GAHS Strategic Plan 2024-2028",
+    description: "Five-year strategic plan outlining GAHS goals and initiatives.",
+    category: "Other",
+    date: "January 2024",
+    fileSize: "2.1 MB",
+    fileUrl: "https://www.who.int/docs/default-source/documents/publications/accreditation-standards.pdf"
   },
 ];
 
@@ -297,8 +417,56 @@ const ResourcesPage = () => {
         </div>
       </section>
 
+      {/* Quick Links Section */}
+      <section className="py-12 bg-muted/30">
+        <div className="container">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-2">External Resources</h2>
+            <p className="text-muted-foreground">Access additional resources from our partner organizations.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <a 
+              href="https://www.moh.gov.gh" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-shadow"
+            >
+              <ExternalLink className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-foreground">Ghana Ministry of Health</p>
+                <p className="text-sm text-muted-foreground">Official government health resources</p>
+              </div>
+            </a>
+            <a 
+              href="https://www.chag.org.gh" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-shadow"
+            >
+              <ExternalLink className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-foreground">CHAG Resources</p>
+                <p className="text-sm text-muted-foreground">Christian Health Association resources</p>
+              </div>
+            </a>
+            <a 
+              href="https://www.who.int" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-shadow"
+            >
+              <ExternalLink className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-foreground">WHO Guidelines</p>
+                <p className="text-sm text-muted-foreground">World Health Organization resources</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-background">
         <div className="container">
           <Card className="border-0 shadow-elegant">
             <CardContent className="p-8 md:p-12 text-center">
