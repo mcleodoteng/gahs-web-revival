@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { FileText, Download, Search, BookOpen, Calendar } from "lucide-react";
+import { FileText, Download, Search, BookOpen, Calendar, ClipboardList, FileSpreadsheet } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Resource {
   id?: string;
@@ -31,22 +32,86 @@ const defaultResources: Resource[] = [
     date: "January 2025",
     fileSize: "4.2 MB"
   },
+  {
+    id: "2",
+    title: "Employment Application Form",
+    description: "Standard application form for employment opportunities at GAHS institutions.",
+    category: "Application Forms",
+    date: "December 2024",
+    fileSize: "1.2 MB"
+  },
+  {
+    id: "3",
+    title: "Student Admission Guidelines",
+    description: "Guidelines for admission into GAHS training institutions.",
+    category: "Guidelines",
+    date: "November 2024",
+    fileSize: "2.5 MB"
+  },
+  {
+    id: "4",
+    title: "Nursing Training Manual",
+    description: "Comprehensive training manual for nursing students.",
+    category: "Training Materials",
+    date: "October 2024",
+    fileSize: "8.1 MB"
+  },
+  {
+    id: "5",
+    title: "Monthly Health Report - December 2024",
+    description: "Monthly summary of health services delivered across all GAHS facilities.",
+    category: "Monthly Reports",
+    date: "January 2025",
+    fileSize: "1.8 MB"
+  },
+  {
+    id: "6",
+    title: "GAHS Newsletter Q4 2024",
+    description: "Quarterly newsletter featuring updates, stories, and achievements from our network.",
+    category: "Newsletters",
+    date: "December 2024",
+    fileSize: "3.5 MB"
+  },
 ];
 
-const categories = ["All", "Application Forms", "Annual Reports", "Monthly Reports", "Guidelines", "Training Materials", "Newsletters", "Other"];
+// Application Forms section categories
+const applicationFormCategories = ["All", "Application Forms", "Guidelines", "Training Materials", "Other"];
+
+// Publications section categories
+const publicationCategories = ["All", "Annual Reports", "Monthly Reports", "Newsletters"];
 
 const ResourcesPage = () => {
   const { isLoading, getSection } = usePageContent("resources");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedApplicationCategory, setSelectedApplicationCategory] = useState("All");
+  const [selectedPublicationCategory, setSelectedPublicationCategory] = useState("All");
+  const [applicationSearchQuery, setApplicationSearchQuery] = useState("");
+  const [publicationSearchQuery, setPublicationSearchQuery] = useState("");
 
   const resourcesContent = getSection<ResourcesContent>("resources_list", { resources: defaultResources })!;
   const resources = resourcesContent.resources || defaultResources;
 
-  const filteredResources = resources.filter(resource => {
-    const matchesCategory = selectedCategory === "All" || resource.category === selectedCategory;
-    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         resource.description.toLowerCase().includes(searchQuery.toLowerCase());
+  // Separate resources into Application Forms and Publications
+  const applicationFormResources = resources.filter(resource => 
+    ["Application Forms", "Guidelines", "Training Materials", "Other"].includes(resource.category)
+  );
+
+  const publicationResources = resources.filter(resource => 
+    ["Annual Reports", "Monthly Reports", "Newsletters"].includes(resource.category)
+  );
+
+  // Filter application form resources
+  const filteredApplicationResources = applicationFormResources.filter(resource => {
+    const matchesCategory = selectedApplicationCategory === "All" || resource.category === selectedApplicationCategory;
+    const matchesSearch = resource.title.toLowerCase().includes(applicationSearchQuery.toLowerCase()) ||
+                         resource.description.toLowerCase().includes(applicationSearchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Filter publication resources
+  const filteredPublicationResources = publicationResources.filter(resource => {
+    const matchesCategory = selectedPublicationCategory === "All" || resource.category === selectedPublicationCategory;
+    const matchesSearch = resource.title.toLowerCase().includes(publicationSearchQuery.toLowerCase()) ||
+                         resource.description.toLowerCase().includes(publicationSearchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -65,6 +130,60 @@ const ResourcesPage = () => {
     );
   }
 
+  const ResourceCard = ({ resource, index }: { resource: Resource; index: number }) => (
+    <Card key={resource.id || index} className="hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
+            <FileText className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <CardTitle className="text-lg">{resource.title}</CardTitle>
+            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {resource.date}
+              </span>
+              {resource.fileSize && (
+                <span>• {resource.fileSize}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground text-sm mb-4">{resource.description}</p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full">
+            {resource.category}
+          </span>
+          {resource.fileUrl ? (
+            <Button size="sm" className="gap-2" asChild>
+              <a href={resource.fileUrl} download target="_blank" rel="noopener noreferrer">
+                <Download className="h-4 w-4" />
+                Download
+              </a>
+            </Button>
+          ) : (
+            <Button size="sm" disabled className="gap-2">
+              <Download className="h-4 w-4" />
+              Coming Soon
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const EmptyState = () => (
+    <Card>
+      <CardContent className="py-12 text-center">
+        <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-muted-foreground">No resources found matching your criteria.</p>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <Layout>
       <PageHero
@@ -75,87 +194,106 @@ const ResourcesPage = () => {
 
       <section className="py-16 bg-background">
         <div className="container">
-          {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <Tabs defaultValue="application-forms" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+              <TabsTrigger value="application-forms" className="gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Application Forms
+              </TabsTrigger>
+              <TabsTrigger value="publications" className="gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Publications
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Resources Grid */}
-          {filteredResources.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No resources found matching your criteria.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-6">
-              {filteredResources.map((resource, index) => (
-                <Card key={resource.id || index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{resource.title}</CardTitle>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {resource.date}
-                          </span>
-                          {resource.fileSize && (
-                            <span>• {resource.fileSize}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm mb-4">{resource.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full">
-                        {resource.category}
-                      </span>
-                      {resource.fileUrl ? (
-                        <Button size="sm" className="gap-2" asChild>
-                          <a href={resource.fileUrl} download target="_blank" rel="noopener noreferrer">
-                            <Download className="h-4 w-4" />
-                            Download
-                          </a>
-                        </Button>
-                      ) : (
-                        <Button size="sm" disabled className="gap-2">
-                          <Download className="h-4 w-4" />
-                          Coming Soon
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+            {/* Application Forms Tab */}
+            <TabsContent value="application-forms">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Application Forms & Guidelines</h2>
+                <p className="text-muted-foreground">Download application forms, guidelines, training materials, and other essential documents.</p>
+              </div>
+
+              {/* Search and Filter */}
+              <div className="flex flex-col md:flex-row gap-4 mb-8">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search application forms..."
+                    value={applicationSearchQuery}
+                    onChange={(e) => setApplicationSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {applicationFormCategories.map((category) => (
+                    <Button
+                      key={category}
+                      variant={selectedApplicationCategory === category ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedApplicationCategory(category)}
+                    >
+                      {category}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resources Grid */}
+              {filteredApplicationResources.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredApplicationResources.map((resource, index) => (
+                    <ResourceCard key={resource.id || index} resource={resource} index={index} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Publications Tab */}
+            <TabsContent value="publications">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Publications & Reports</h2>
+                <p className="text-muted-foreground">Access annual reports, monthly reports, newsletters, and other publications.</p>
+              </div>
+
+              {/* Search and Filter */}
+              <div className="flex flex-col md:flex-row gap-4 mb-8">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search publications..."
+                    value={publicationSearchQuery}
+                    onChange={(e) => setPublicationSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {publicationCategories.map((category) => (
+                    <Button
+                      key={category}
+                      variant={selectedPublicationCategory === category ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedPublicationCategory(category)}
+                    >
+                      {category}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resources Grid */}
+              {filteredPublicationResources.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredPublicationResources.map((resource, index) => (
+                    <ResourceCard key={resource.id || index} resource={resource} index={index} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 

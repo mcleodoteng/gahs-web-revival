@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Heart, Users, Building2, ChevronLeft, ChevronRight, Star, Award, Target, Shield, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -29,24 +29,25 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe,
 };
 
+// Use optimized, smaller images for faster loading
 const defaultSlides: Slide[] = [
   {
     id: "1",
-    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1920&q=80",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=75&auto=format&fit=crop",
     title: "Compassionate Healthcare",
     highlight: "Rooted in Faith",
     description: "Ghana Adventist Health Services delivers quality healthcare through a network of hospitals, clinics, and training institutions across Ghana.",
   },
   {
     id: "2",
-    image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=1920&q=80",
+    image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=1200&q=75&auto=format&fit=crop",
     title: "Excellence in",
     highlight: "Medical Training",
     description: "Producing quality health professionals through our network of 7 training institutions dedicated to shaping the future of healthcare in Ghana.",
   },
   {
     id: "3",
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1920&q=80",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&q=75&auto=format&fit=crop",
     title: "Healing Communities",
     highlight: "Transforming Lives",
     description: "Over 43 health institutions strategically located across Ghana, bringing accessible healthcare to urban centers and rural communities alike.",
@@ -63,11 +64,26 @@ export const HeroCarousel = () => {
   const { sections, isLoading } = usePageContent("home");
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
 
   // Get slides and stats from CMS or use defaults
   const heroContent = sections.find(s => s.section_key === "hero")?.content as { slides?: Slide[]; stats?: Stat[] } | undefined;
   const slides: Slide[] = heroContent?.slides?.length ? heroContent.slides : defaultSlides;
   const stats: Stat[] = heroContent?.stats?.length ? heroContent.stats : defaultStats;
+
+  // Preload images for smooth transitions
+  useEffect(() => {
+    const loadedStates: boolean[] = new Array(slides.length).fill(false);
+    
+    slides.forEach((slide, index) => {
+      const img = new Image();
+      img.onload = () => {
+        loadedStates[index] = true;
+        setImagesLoaded([...loadedStates]);
+      };
+      img.src = slide.image;
+    });
+  }, [slides]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -77,13 +93,13 @@ export const HeroCarousel = () => {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const paginate = (newDirection: number) => {
+  const paginate = useCallback((newDirection: number) => {
     setDirection(newDirection);
     setCurrent((prev) => {
       if (newDirection === 1) return (prev + 1) % slides.length;
       return prev === 0 ? slides.length - 1 : prev - 1;
     });
-  };
+  }, [slides.length]);
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -117,12 +133,23 @@ export const HeroCarousel = () => {
           className="absolute inset-0"
         >
           <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${slides[current].image})` }}
+            className="absolute inset-0 bg-cover bg-center will-change-transform"
+            style={{ 
+              backgroundImage: `url(${slides[current].image})`,
+              // Use CSS for better performance
+              backfaceVisibility: 'hidden',
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/95 via-primary/85 to-primary-dark/90" />
         </motion.div>
       </AnimatePresence>
+
+      {/* Preload next images in background */}
+      <div className="hidden">
+        {slides.map((slide, index) => (
+          <link key={index} rel="preload" as="image" href={slide.image} />
+        ))}
+      </div>
 
       {/* Navigation Arrows */}
       <button
