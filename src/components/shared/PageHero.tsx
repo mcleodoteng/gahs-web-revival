@@ -5,11 +5,28 @@ interface PageHeroProps {
   subtitle?: string;
   badge?: string;
   children?: ReactNode;
+  backgroundImage?: string;
 }
 
-export const PageHero = ({ title, subtitle, badge, children }: PageHeroProps) => {
+const defaultHeroImage = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1920&auto=format&q=80";
+
+export const PageHero = ({ 
+  title, 
+  subtitle, 
+  badge, 
+  children,
+  backgroundImage = defaultHeroImage 
+}: PageHeroProps) => {
   return (
-    <section className="relative py-20 hero-section overflow-hidden">
+    <section className="relative py-20 overflow-hidden">
+      {/* Background image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+      
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 hero-section" />
       <div className="hero-overlay absolute inset-0" />
       
       {/* Background decoration */}
