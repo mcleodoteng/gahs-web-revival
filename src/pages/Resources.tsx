@@ -8,7 +8,7 @@ import { FileText, Download, Search, BookOpen, Calendar, ClipboardList, FileSpre
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { motion } from "framer-motion";
 interface Resource {
   id?: string;
   title: string;
@@ -327,91 +327,119 @@ const ResourcesPage = () => {
             </TabsList>
 
             {/* Application Forms Tab */}
-            <TabsContent value="application-forms">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Application Forms & Guidelines</h2>
-                <p className="text-muted-foreground">Download application forms, guidelines, training materials, and other essential documents.</p>
-              </div>
+            <TabsContent value="application-forms" asChild>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Application Forms & Guidelines</h2>
+                  <p className="text-muted-foreground">Download application forms, guidelines, training materials, and other essential documents.</p>
+                </div>
 
-              {/* Search and Filter */}
-              <div className="flex flex-col md:flex-row gap-4 mb-8">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search application forms..."
-                    value={applicationSearchQuery}
-                    onChange={(e) => setApplicationSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                {/* Search and Filter */}
+                <div className="flex flex-col md:flex-row gap-4 mb-8">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search application forms..."
+                      value={applicationSearchQuery}
+                      onChange={(e) => setApplicationSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {applicationFormCategories.map((category) => (
+                      <Button
+                        key={category}
+                        variant={selectedApplicationCategory === category ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedApplicationCategory(category)}
+                      >
+                        {category}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {applicationFormCategories.map((category) => (
-                    <Button
-                      key={category}
-                      variant={selectedApplicationCategory === category ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedApplicationCategory(category)}
-                    >
-                      {category}
-                    </Button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Resources Grid */}
-              {filteredApplicationResources.length === 0 ? (
-                <EmptyState />
-              ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {filteredApplicationResources.map((resource, index) => (
-                    <ResourceCard key={resource.id || index} resource={resource} index={index} />
-                  ))}
-                </div>
-              )}
+                {/* Resources Grid */}
+                {filteredApplicationResources.length === 0 ? (
+                  <EmptyState />
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {filteredApplicationResources.map((resource, index) => (
+                      <motion.div
+                        key={resource.id || index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <ResourceCard resource={resource} index={index} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             </TabsContent>
 
             {/* Publications Tab */}
-            <TabsContent value="publications">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Publications & Reports</h2>
-                <p className="text-muted-foreground">Access annual reports, monthly reports, newsletters, and other publications.</p>
-              </div>
+            <TabsContent value="publications" asChild>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Publications & Reports</h2>
+                  <p className="text-muted-foreground">Access annual reports, monthly reports, newsletters, and other publications.</p>
+                </div>
 
-              {/* Search and Filter */}
-              <div className="flex flex-col md:flex-row gap-4 mb-8">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search publications..."
-                    value={publicationSearchQuery}
-                    onChange={(e) => setPublicationSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                {/* Search and Filter */}
+                <div className="flex flex-col md:flex-row gap-4 mb-8">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search publications..."
+                      value={publicationSearchQuery}
+                      onChange={(e) => setPublicationSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {publicationCategories.map((category) => (
+                      <Button
+                        key={category}
+                        variant={selectedPublicationCategory === category ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedPublicationCategory(category)}
+                      >
+                        {category}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {publicationCategories.map((category) => (
-                    <Button
-                      key={category}
-                      variant={selectedPublicationCategory === category ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedPublicationCategory(category)}
-                    >
-                      {category}
-                    </Button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Resources Grid */}
-              {filteredPublicationResources.length === 0 ? (
-                <EmptyState />
-              ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {filteredPublicationResources.map((resource, index) => (
-                    <ResourceCard key={resource.id || index} resource={resource} index={index} />
-                  ))}
-                </div>
-              )}
+                {/* Resources Grid */}
+                {filteredPublicationResources.length === 0 ? (
+                  <EmptyState />
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {filteredPublicationResources.map((resource, index) => (
+                      <motion.div
+                        key={resource.id || index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <ResourceCard resource={resource} index={index} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             </TabsContent>
           </Tabs>
         </div>

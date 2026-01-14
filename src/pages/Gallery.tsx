@@ -139,54 +139,71 @@ const GalleryPage = () => {
         </div>
       </section>
 
-      {/* Lightbox */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-            onClick={closeLightbox}
-          >
-            <button
-              className="absolute top-4 right-4 text-white hover:text-primary transition-colors"
-              onClick={closeLightbox}
-            >
-              <X className="h-8 w-8" />
-            </button>
-            <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-primary transition-colors"
-              onClick={(e) => { e.stopPropagation(); prevImage(); }}
-            >
-              <ChevronLeft className="h-12 w-12" />
-            </button>
-            <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-primary transition-colors"
-              onClick={(e) => { e.stopPropagation(); nextImage(); }}
-            >
-              <ChevronRight className="h-12 w-12" />
-            </button>
+          <>
+            {/* Backdrop - prevents interaction with content behind */}
             <motion.div
-              key={lightboxIndex}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="max-w-5xl max-h-[80vh] px-4"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/95"
+              onClick={closeLightbox}
+              aria-hidden="true"
+            />
+            
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Image lightbox"
             >
-              <img
-                src={filteredImages[lightboxIndex].src}
-                alt={filteredImages[lightboxIndex].title}
-                className="max-w-full max-h-[70vh] object-contain mx-auto"
-                loading="eager"
-              />
-              <div className="text-center mt-4">
-                <p className="text-white text-xl font-semibold">{filteredImages[lightboxIndex].title}</p>
-                <p className="text-white/70">{filteredImages[lightboxIndex].description}</p>
-              </div>
+              <button
+                className="absolute top-4 right-4 text-white hover:text-primary transition-colors pointer-events-auto z-10"
+                onClick={closeLightbox}
+                aria-label="Close lightbox"
+              >
+                <X className="h-8 w-8" />
+              </button>
+              <button
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-primary transition-colors pointer-events-auto z-10"
+                onClick={prevImage}
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-12 w-12" />
+              </button>
+              <button
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-primary transition-colors pointer-events-auto z-10"
+                onClick={nextImage}
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-12 w-12" />
+              </button>
+              <motion.div
+                key={lightboxIndex}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="max-w-5xl max-h-[80vh] px-4 pointer-events-auto"
+              >
+                <img
+                  src={filteredImages[lightboxIndex].src}
+                  alt={filteredImages[lightboxIndex].title}
+                  className="max-w-full max-h-[70vh] object-contain mx-auto"
+                  loading="eager"
+                />
+                <div className="text-center mt-4">
+                  <p className="text-white text-xl font-semibold">{filteredImages[lightboxIndex].title}</p>
+                  <p className="text-white/70">{filteredImages[lightboxIndex].description}</p>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </Layout>
