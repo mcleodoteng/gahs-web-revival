@@ -4,6 +4,31 @@ import { Target, Network, FileText, BarChart3 } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Icon and color mapping to match homepage ServicesPreview
+const serviceConfig: Record<string, { icon: React.ElementType; color: string; hoverColor: string }> = {
+  "Organizational Leadership": { 
+    icon: Target, 
+    color: "bg-primary", 
+    hoverColor: "bg-primary-dark" 
+  },
+  "Network Integration": { 
+    icon: Network, 
+    color: "bg-secondary", 
+    hoverColor: "bg-secondary" 
+  },
+  "Policy Engagement": { 
+    icon: FileText, 
+    color: "bg-accent", 
+    hoverColor: "bg-accent" 
+  },
+  "Monitoring & Evaluation": { 
+    icon: BarChart3, 
+    color: "bg-gold", 
+    hoverColor: "bg-gold" 
+  },
+};
+
+// Fallback icon map for CMS content
 const iconMap: Record<string, React.ElementType> = {
   Target,
   Network,
@@ -107,7 +132,11 @@ const ServicesPage = () => {
         <div className="container">
           <div className="max-w-4xl mx-auto space-y-8">
             {servicesContent.items?.map((service, index) => {
-              const IconComponent = iconMap[service.icon] || Target;
+              // Get config from serviceConfig first, fallback to iconMap
+              const config = serviceConfig[service.title];
+              const IconComponent = config?.icon || iconMap[service.icon] || Target;
+              const bgColor = config?.color || "bg-primary";
+              
               return (
                 <div
                   key={service.title}
@@ -115,8 +144,8 @@ const ServicesPage = () => {
                 >
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 rounded-xl bg-primary-light flex items-center justify-center group-hover:bg-primary transition-colors">
-                        <IconComponent className="h-8 w-8 text-primary group-hover:text-primary-foreground transition-colors" />
+                      <div className={`w-16 h-16 rounded-xl ${bgColor} flex items-center justify-center group-hover:scale-110 transition-all duration-300`}>
+                        <IconComponent className="h-8 w-8 text-white" />
                       </div>
                     </div>
                     <div>
