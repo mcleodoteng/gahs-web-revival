@@ -3,6 +3,7 @@ import { PageHero } from "@/components/shared/PageHero";
 import { Target, Network, FileText, BarChart3 } from "lucide-react";
 import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 // Icon and color mapping to match homepage ServicesPreview
 const serviceConfig: Record<string, { icon: React.ElementType; color: string; hoverColor: string }> = {
@@ -138,9 +139,14 @@ const ServicesPage = () => {
               const bgColor = config?.color || "bg-primary";
               
               return (
-                <div
+                <motion.div
                   key={service.title}
-                  className="service-card group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                  className="service-card group cursor-pointer"
                 >
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
@@ -152,7 +158,7 @@ const ServicesPage = () => {
                       <span className="text-sm text-muted-foreground mb-2 block">
                         0{index + 1}
                       </span>
-                      <h3 className="text-2xl font-bold text-foreground mb-4">
+                      <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
                         {service.title}
                       </h3>
                       <p className="text-muted-foreground leading-relaxed">
@@ -160,7 +166,7 @@ const ServicesPage = () => {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
