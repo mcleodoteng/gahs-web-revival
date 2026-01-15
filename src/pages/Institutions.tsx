@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { usePageContent } from "@/hooks/useCMS";
 import {
   Pagination,
@@ -54,6 +55,8 @@ const InstitutionsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const isMobile = useIsMobile();
   const itemsPerPage = 10;
 
   // Get data from CMS or use defaults
@@ -174,9 +177,63 @@ const InstitutionsPage = () => {
       />
 
       {/* Filters Section */}
-      <section className="py-8 bg-muted/50 border-b border-border sticky top-[5rem] z-40">
+      <section className="py-3 md:py-6 bg-muted/50 border-b border-border sticky top-[4.5rem] md:top-[5rem] z-40">
         <div className="container">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          {/* Mobile: Compact filter bar */}
+          <div className="lg:hidden">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background text-sm font-medium"
+              >
+                <Filter className="h-4 w-4" />
+                {activeCategory === "all" ? "All" : categories.find(c => c.id === activeCategory)?.name}
+                <span className="text-xs text-muted-foreground">({allInstitutions.length})</span>
+              </button>
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+            </div>
+            
+            {/* Mobile: Expandable filter panel */}
+            {mobileFiltersOpen && (
+              <div className="mt-3 p-3 bg-background rounded-lg border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-foreground">Filter by category</span>
+                  <button onClick={() => setMobileFiltersOpen(false)} className="p-1">
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setActiveCategory(category.id);
+                        setMobileFiltersOpen(false);
+                      }}
+                      className={`filter-pill flex items-center gap-1.5 text-xs py-1.5 px-2.5 ${
+                        activeCategory === category.id ? "active" : ""
+                      }`}
+                    >
+                      <category.icon className="h-3 w-3" />
+                      {category.name}
+                      <span className="opacity-70">({category.count})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Desktop: Full filter bar */}
+          <div className="hidden lg:flex flex-row gap-4 items-center justify-between">
             {/* Category filters */}
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
@@ -195,13 +252,13 @@ const InstitutionsPage = () => {
             </div>
 
             {/* Search */}
-            <div className="w-full lg:w-auto">
+            <div className="w-auto">
               <input
                 type="text"
                 placeholder="Search by name, location, or region..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full lg:w-80 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-80 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
           </div>
