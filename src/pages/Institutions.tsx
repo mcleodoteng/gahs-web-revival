@@ -28,9 +28,16 @@ interface Institution {
   status: string;
   phone?: string;
   email?: string;
-  services?: string[];
+  services?: string[] | string;
   image?: string;
 }
+
+// Helper to parse services from CMS (can be string or array)
+const parseServices = (services?: string[] | string): string[] => {
+  if (!services) return [];
+  if (Array.isArray(services)) return services;
+  return services.split(',').map(s => s.trim()).filter(Boolean);
+};
 
 // Default data as fallback
 const defaultHospitals: Institution[] = [
@@ -582,20 +589,23 @@ const InstitutionsPage = () => {
                   Services Offered
                 </h4>
                 <div className="pl-6">
-                  {selectedInstitution.services && selectedInstitution.services.length > 0 ? (
-                    <ul className="grid grid-cols-2 gap-2">
-                      {selectedInstitution.services.map((service, idx) => (
-                        <li key={idx} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
-                          {service}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground/60">
-                      General healthcare services - Contact facility for details
-                    </p>
-                  )}
+                  {(() => {
+                    const servicesList = parseServices(selectedInstitution.services);
+                    return servicesList.length > 0 ? (
+                      <ul className="grid grid-cols-2 gap-2">
+                        {servicesList.map((service, idx) => (
+                          <li key={idx} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            {service}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground/60">
+                        General healthcare services - Contact facility for details
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

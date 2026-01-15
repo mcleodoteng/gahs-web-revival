@@ -138,6 +138,10 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
       { label: "Active", value: "ACTIVE" },
       { label: "Awaiting Accreditation", value: "AWAITING FULL ACCREDITATION" },
     ]},
+    { key: "phone", label: "Phone Number", type: "text", placeholder: "+233 XX XXX XXXX" },
+    { key: "email", label: "Email Address", type: "text", placeholder: "info@hospital.org.gh" },
+    { key: "image", label: "Facility Image", type: "image", placeholder: "Upload facility image" },
+    { key: "services", label: "Services (comma-separated)", type: "textarea", placeholder: "General Medicine, Surgery, Maternity, Emergency Care" },
   ],
   resources: [
     { key: "title", label: "Title", type: "text", placeholder: "GAHS Annual Report 2024" },
