@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X } from "lucide-react";
+import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X, Phone, Mail, Eye, Building, Users } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePageContent } from "@/hooks/useCMS";
 import {
@@ -12,6 +12,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Institution {
   name: string;
@@ -20,6 +26,10 @@ interface Institution {
   union: string;
   type: string;
   status: string;
+  phone?: string;
+  email?: string;
+  services?: string[];
+  image?: string;
 }
 
 // Default data as fallback
@@ -56,6 +66,7 @@ const InstitutionsPage = () => {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
   const isMobile = useIsMobile();
   const itemsPerPage = 10;
 
@@ -177,7 +188,7 @@ const InstitutionsPage = () => {
       />
 
       {/* Filters Section */}
-      <section className="py-3 md:py-6 bg-muted/50 border-b border-border sticky top-[4.5rem] md:top-[5rem] z-40">
+      <section className="py-3 md:py-6 bg-muted/50 border-b border-border sticky top-[4.5rem] md:top-[7.5rem] z-40">
         <div className="container">
           {/* Mobile: Compact filter bar */}
           <div className="lg:hidden">
@@ -334,6 +345,7 @@ const InstitutionsPage = () => {
                       {getSortIcon("status")}
                     </div>
                   </th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -366,6 +378,15 @@ const InstitutionsPage = () => {
                         </span>
                       )}
                     </td>
+                    <td className="text-center">
+                      <button
+                        onClick={() => setSelectedInstitution(institution)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-dark bg-primary-light hover:bg-primary-light/80 rounded-lg transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View Details
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -397,10 +418,17 @@ const InstitutionsPage = () => {
                   </p>
                   <p>Union: {institution.union}</p>
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 flex items-center justify-between">
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-light text-secondary">
                     {institution.type}
                   </span>
+                  <button
+                    onClick={() => setSelectedInstitution(institution)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-dark bg-primary-light hover:bg-primary-light/80 rounded-lg transition-colors"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    View Details
+                  </button>
                 </div>
               </div>
             ))}
@@ -461,6 +489,119 @@ const InstitutionsPage = () => {
           )}
         </div>
       </section>
+
+      {/* Institution Details Modal */}
+      <Dialog open={!!selectedInstitution} onOpenChange={() => setSelectedInstitution(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              {selectedInstitution?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedInstitution && (
+            <div className="space-y-6">
+              {/* Facility Image Placeholder */}
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {selectedInstitution.image ? (
+                  <img 
+                    src={selectedInstitution.image} 
+                    alt={selectedInstitution.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Building className="h-12 w-12" />
+                    <span className="text-sm">Facility Image</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Status and Type */}
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary-light text-secondary">
+                  {selectedInstitution.type}
+                </span>
+                {selectedInstitution.status === "ACTIVE" ? (
+                  <span className="status-active">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Active
+                  </span>
+                ) : (
+                  <span className="status-pending">
+                    <Clock className="h-3.5 w-3.5" />
+                    Pending
+                  </span>
+                )}
+              </div>
+
+              {/* Location Details */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Location
+                </h4>
+                <div className="pl-6 space-y-1 text-sm text-muted-foreground">
+                  <p>{selectedInstitution.location}</p>
+                  <p>{selectedInstitution.region} Region</p>
+                  <p>Union: {selectedInstitution.union}</p>
+                </div>
+              </div>
+
+              {/* Contact Details */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Contact Information
+                </h4>
+                <div className="pl-6 space-y-2 text-sm">
+                  {selectedInstitution.phone ? (
+                    <a href={`tel:${selectedInstitution.phone}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                      <Phone className="h-3.5 w-3.5" />
+                      {selectedInstitution.phone}
+                    </a>
+                  ) : (
+                    <p className="flex items-center gap-2 text-muted-foreground/60">
+                      <Phone className="h-3.5 w-3.5" />
+                      Contact information not available
+                    </p>
+                  )}
+                  {selectedInstitution.email && (
+                    <a href={`mailto:${selectedInstitution.email}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                      <Mail className="h-3.5 w-3.5" />
+                      {selectedInstitution.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Services Offered */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-primary" />
+                  Services Offered
+                </h4>
+                <div className="pl-6">
+                  {selectedInstitution.services && selectedInstitution.services.length > 0 ? (
+                    <ul className="grid grid-cols-2 gap-2">
+                      {selectedInstitution.services.map((service, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          {service}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground/60">
+                      General healthcare services - Contact facility for details
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
