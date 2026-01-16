@@ -13,7 +13,8 @@ import Portfolio from "./pages/Portfolio";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Gallery from "./pages/Gallery";
-import Resources from "./pages/Resources";
+import FormsAndPublications from "./pages/FormsAndPublications";
+import FormSubmission from "./pages/FormSubmission";
 import Testimonials from "./pages/Testimonials";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
@@ -26,6 +27,7 @@ import AdminPageEditor from "./pages/admin/PageEditor";
 import AdminMedia from "./pages/admin/Media";
 import AdminSettings from "./pages/admin/Settings";
 import AdminMessages from "./pages/admin/Messages";
+import AdminFormSubmissions from "./pages/admin/FormSubmissions";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +48,8 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/gallery" element={<Gallery />} />
-            <Route path="/resources" element={<Resources />} />
+            <Route path="/forms-and-publications" element={<FormsAndPublications />} />
+            <Route path="/form-submission" element={<FormSubmission />} />
             <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
@@ -58,6 +61,7 @@ const App = () => (
             <Route path="/admin/media" element={<AdminMedia />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/messages" element={<AdminMessages />} />
+            <Route path="/admin/form-submissions" element={<AdminFormSubmissions />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
