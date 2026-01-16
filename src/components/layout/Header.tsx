@@ -19,12 +19,19 @@ const navigation = [
   { name: "Services", href: "/services" },
   { name: "Institutions", href: "/institutions" },
   { 
+    name: "Resources", 
+    href: "/forms-and-publications",
+    children: [
+      { name: "Forms & Publications", href: "/forms-and-publications" },
+      { name: "Form Submission", href: "/form-submission" },
+    ]
+  },
+  { 
     name: "Media", 
     href: "/gallery",
     children: [
       { name: "Gallery", href: "/gallery" },
       { name: "Blog", href: "/blog" },
-      { name: "Resources", href: "/resources" },
       { name: "Testimonials", href: "/testimonials" },
     ]
   },

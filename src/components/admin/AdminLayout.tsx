@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Menu,
   MessageSquare,
+  FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +27,7 @@ const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Pages", href: "/admin/pages", icon: FileText },
   { name: "Messages", href: "/admin/messages", icon: MessageSquare },
+  { name: "Application Forms", href: "/admin/form-submissions", icon: FileCheck },
   { name: "Media", href: "/admin/media", icon: Image },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
