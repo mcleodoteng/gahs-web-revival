@@ -7,6 +7,7 @@ import { usePageContent } from "@/hooks/useCMS";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { contactFormSchema } from "@/lib/validations";
 
 interface HeroContent {
   title: string;
@@ -52,13 +53,29 @@ const ContactPage = () => {
     setIsSubmitting(true);
 
     try {
+      // Validate form data using Zod
+      const validationResult = contactFormSchema.safeParse(formData);
+      
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: "Validation Error",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const validated = validationResult.data;
+
       // Save to database
       const { error } = await supabase.from("contact_messages").insert({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim() || null,
-        subject: formData.subject.trim(),
-        message: formData.message.trim(),
+        name: validated.name,
+        email: validated.email,
+        phone: validated.phone || null,
+        subject: validated.subject,
+        message: validated.message,
       });
 
       if (error) throw error;
@@ -66,13 +83,15 @@ const ContactPage = () => {
       // Send email notifications (don't block on this)
       supabase.functions.invoke("send-contact-notification", {
         body: {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim() || undefined,
-          subject: formData.subject.trim(),
-          message: formData.message.trim(),
+          name: validated.name,
+          email: validated.email,
+          phone: validated.phone || undefined,
+          subject: validated.subject,
+          message: validated.message,
         },
-      }).catch(console.error);
+      }).catch(() => {
+        // Silent failure - message is saved, email is secondary
+      });
 
       toast({
         title: "Message Sent",
@@ -83,7 +102,7 @@ const ContactPage = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to send message. Please try again.",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Leadership from "./pages/Leadership";
@@ -55,13 +56,13 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/pages" element={<AdminPages />} />
-            <Route path="/admin/pages/:slug" element={<AdminPageEditor />} />
-            <Route path="/admin/media" element={<AdminMedia />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/messages" element={<AdminMessages />} />
-            <Route path="/admin/form-submissions" element={<AdminFormSubmissions />} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
+            <Route path="/admin/pages/:slug" element={<ProtectedRoute requireAdmin><AdminPageEditor /></ProtectedRoute>} />
+            <Route path="/admin/media" element={<ProtectedRoute requireAdmin><AdminMedia /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/messages" element={<ProtectedRoute requireAdmin><AdminMessages /></ProtectedRoute>} />
+            <Route path="/admin/form-submissions" element={<ProtectedRoute requireAdmin><AdminFormSubmissions /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
