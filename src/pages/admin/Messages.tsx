@@ -10,6 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Mail, MailOpen, Trash2, Eye, Calendar, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +40,7 @@ const AdminMessages = () => {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ContactMessage | null>(null);
   const { toast } = useToast();
 
   const fetchMessages = async () => {
@@ -67,13 +78,13 @@ const AdminMessages = () => {
     }
   };
 
-  const deleteMessage = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this message?")) return;
+  const handleDeleteMessage = async () => {
+    if (!deleteTarget) return;
 
     const { error } = await supabase
       .from("contact_messages")
       .delete()
-      .eq("id", id);
+      .eq("id", deleteTarget.id);
 
     if (error) {
       toast({
@@ -82,13 +93,14 @@ const AdminMessages = () => {
         variant: "destructive",
       });
     } else {
-      setMessages((prev) => prev.filter((m) => m.id !== id));
+      setMessages((prev) => prev.filter((m) => m.id !== deleteTarget.id));
       setSelectedMessage(null);
       toast({
         title: "Deleted",
-        description: "Message has been deleted",
+        description: "Message has been deleted successfully",
       });
     }
+    setDeleteTarget(null);
   };
 
   const viewMessage = (message: ContactMessage) => {
@@ -235,7 +247,7 @@ const AdminMessages = () => {
                     variant="destructive"
                     size="sm"
                     className="gap-2"
-                    onClick={() => deleteMessage(selectedMessage.id)}
+                    onClick={() => setDeleteTarget(selectedMessage)}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -256,6 +268,24 @@ const AdminMessages = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Message</AlertDialogTitle>
+              <AlertDialogDescription>
+                Do you want to delete the message from <strong>{deleteTarget?.name}</strong> with subject <strong>"{deleteTarget?.subject}"</strong>? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>No, Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteMessage} className="bg-destructive hover:bg-destructive/90">
+                Yes, Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

@@ -152,22 +152,86 @@ const AdminSettings = () => {
     setDeleteTarget(null);
   };
 
-  const handlePasswordChange = async () => {
-    const { error } = await supabase.auth.resetPasswordForEmail(user?.email || "", {
-      redirectTo: `${window.location.origin}/auth`,
-    });
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-    if (error) {
+  const handlePasswordChange = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
       toast({
         title: "Error",
-        description: error.message,
+        description: "Please fill in all password fields.",
         variant: "destructive",
       });
-    } else {
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
       toast({
-        title: "Password Reset Email Sent",
-        description: "Check your email for a link to reset your password.",
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      // First verify the old password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: oldPassword,
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: "Current password is incorrect.",
+          variant: "destructive",
+        });
+        setIsChangingPassword(false);
+        return;
+      }
+
+      // Now update to the new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        toast({
+          title: "Error",
+          description: updateError.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Password changed successfully.",
+        });
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -214,10 +278,6 @@ const AdminSettings = () => {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Account ID</Label>
-                  <Input value={user?.id || ""} disabled />
-                </div>
-                <div className="space-y-2">
                   <Label>Role</Label>
                   <Input value="Administrator" disabled />
                 </div>
@@ -228,21 +288,50 @@ const AdminSettings = () => {
           <TabsContent value="security">
             <Card>
               <CardHeader>
-                <CardTitle>Security Settings</CardTitle>
+                <CardTitle>Change Password</CardTitle>
                 <CardDescription>
-                  Manage your password and security preferences.
+                  Update your password by entering your current password and a new one.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Password</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send a password reset link to your email address.
-                  </p>
-                  <Button onClick={handlePasswordChange} variant="outline">
-                    Send Reset Link
-                  </Button>
+                  <Label htmlFor="oldPassword">Current Password</Label>
+                  <Input
+                    id="oldPassword"
+                    type="password"
+                    placeholder="Enter current password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  onClick={handlePasswordChange} 
+                  disabled={isChangingPassword || !oldPassword || !newPassword || !confirmPassword}
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {isChangingPassword ? "Saving..." : "Save New Password"}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
