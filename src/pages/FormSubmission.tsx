@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { Upload, Plus, Trash2, FileText, Send, CheckCircle } from "lucide-react";
+import { Upload, Plus, Trash2, FileText, Send, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePageContent } from "@/hooks/useCMS";
 
 const formTypes = [
   { value: "bond", label: "Bond Form" },
@@ -26,8 +27,21 @@ interface FileUpload {
   description: string;
 }
 
+interface HeroContent {
+  title?: string;
+  subtitle?: string;
+  badge?: string;
+}
+
+interface SubmissionFormContent {
+  formTitle?: string;
+  formDescription?: string;
+  unavailableMessage?: string;
+}
+
 const FormSubmission = () => {
   const { toast } = useToast();
+  const { sections, isLoading: cmsLoading, getSection } = usePageContent("form-submission");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,6 +53,17 @@ const FormSubmission = () => {
   const [fileUploads, setFileUploads] = useState<FileUpload[]>([
     { id: crypto.randomUUID(), formType: "", file: null, description: "" },
   ]);
+
+  // Get CMS content
+  const heroContent = getSection<HeroContent>("hero", { 
+    title: "Form Submission", 
+    subtitle: "Upload your completed forms for processing",
+    badge: "Resources"
+  });
+  const submissionFormContent = getSection<SubmissionFormContent>("submission_form");
+  
+  // Check if submission form section is available (not hidden)
+  const isSubmissionEnabled = sections.some(s => s.section_key === "submission_form" && s.is_active);
 
   const addFileUpload = () => {
     setFileUploads([
@@ -140,13 +165,70 @@ const FormSubmission = () => {
     }
   };
 
-  if (submitted) {
+  // Show loading state
+  if (cmsLoading) {
     return (
       <Layout>
         <PageHero
           title="Form Submission"
           subtitle="Upload your completed forms for processing"
           badge="Resources"
+        />
+        <section className="py-16">
+          <div className="container max-w-2xl">
+            <div className="flex justify-center">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Show unavailable message if submission is disabled
+  if (!isSubmissionEnabled) {
+    const unavailableMessage = submissionFormContent?.unavailableMessage || 
+      "Sorry, you cannot send or upload any document at this moment. Please come back later.";
+    
+    return (
+      <Layout>
+        <PageHero
+          title={heroContent?.title || "Form Submission"}
+          subtitle={heroContent?.subtitle || "Upload your completed forms for processing"}
+          badge={heroContent?.badge || "Resources"}
+        />
+        <section className="py-16">
+          <div className="container max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center"
+            >
+              <Card className="border-amber-200 bg-amber-50">
+                <CardContent className="py-12">
+                  <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    Form Submission Unavailable
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {unavailableMessage}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <Layout>
+        <PageHero
+          title={heroContent?.title || "Form Submission"}
+          subtitle={heroContent?.subtitle || "Upload your completed forms for processing"}
+          badge={heroContent?.badge || "Resources"}
         />
         <section className="py-16">
           <div className="container max-w-2xl">
@@ -183,9 +265,9 @@ const FormSubmission = () => {
   return (
     <Layout>
       <PageHero
-        title="Form Submission"
-        subtitle="Upload your completed forms for processing"
-        badge="Resources"
+        title={heroContent?.title || "Form Submission"}
+        subtitle={heroContent?.subtitle || "Upload your completed forms for processing"}
+        badge={heroContent?.badge || "Resources"}
       />
 
       <section className="py-16">
@@ -196,9 +278,9 @@ const FormSubmission = () => {
           >
             <Card>
               <CardHeader>
-                <CardTitle>Submit Your Forms</CardTitle>
+                <CardTitle>{submissionFormContent?.formTitle || "Submit Your Forms"}</CardTitle>
                 <CardDescription>
-                  Complete the form below to submit your filled documents. You can upload multiple forms at once.
+                  {submissionFormContent?.formDescription || "Complete the form below to submit your filled documents. You can upload multiple forms at once."}
                 </CardDescription>
               </CardHeader>
               <CardContent>

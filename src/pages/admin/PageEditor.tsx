@@ -386,6 +386,34 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
     },
   },
+  "forms-publications": {
+    title: "Forms & Publications",
+    fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Forms & Publications" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Download forms and publications" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Resources" },
+      ],
+      resources_list: [
+        { label: "Resources", key: "resources", type: "array", arrayType: "resources" },
+      ],
+    },
+  },
+  "form-submission": {
+    title: "Form Submission",
+    fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Form Submission" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Upload your completed forms" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Resources" },
+      ],
+      submission_form: [
+        { label: "Form Title", key: "formTitle", type: "text", placeholder: "Submit Your Forms" },
+        { label: "Form Description", key: "formDescription", type: "textarea", placeholder: "Complete the form below..." },
+        { label: "Unavailable Message", key: "unavailableMessage", type: "textarea", placeholder: "Form submission is currently unavailable..." },
+      ],
+    },
+  },
 };
 interface ImageUploadProps {
   value: string;
@@ -542,8 +570,12 @@ const PageEditor = () => {
     setEditFormData({});
   };
 
-  const handleToggleActive = async (section: PageContent) => {
-    await updateContent(section.id, { is_active: !section.is_active });
+  const [hideTarget, setHideTarget] = useState<PageContent | null>(null);
+
+  const handleToggleActive = async () => {
+    if (!hideTarget) return;
+    await updateContent(hideTarget.id, { is_active: !hideTarget.is_active });
+    setHideTarget(null);
   };
 
   const handleDeleteSection = async () => {
@@ -678,7 +710,7 @@ const PageEditor = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleToggleActive(section)}
+                        onClick={() => setHideTarget(section)}
                         title={section.is_active ? "Hide section" : "Show section"}
                       >
                         {section.is_active ? (
@@ -812,10 +844,38 @@ const PageEditor = () => {
               <AlertDialogAction onClick={handleDeleteSection} className="bg-destructive hover:bg-destructive/90">
                 Yes, Delete
               </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Hide/Show Confirmation Dialog */}
+      <AlertDialog open={!!hideTarget} onOpenChange={(open) => !open && setHideTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {hideTarget?.is_active ? "Hide Section" : "Show Section"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Do you want to {hideTarget?.is_active ? "hide" : "show"} the section{" "}
+              <strong>
+                {hideTarget?.section_key
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </strong>
+              ? {hideTarget?.is_active 
+                ? "This will hide it from the public website." 
+                : "This will make it visible on the public website."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleActive}>
+              Yes, {hideTarget?.is_active ? "Hide" : "Show"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
     </AdminLayout>
   );
 };
