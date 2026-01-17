@@ -41,6 +41,7 @@ interface SubmissionFile {
   file_name: string;
   file_size: number | null;
   description: string | null;
+  signed_url?: string;
 }
 
 interface FormSubmission {
@@ -87,7 +88,7 @@ const AdminFormSubmissions = () => {
       return;
     }
 
-    // Fetch files for each submission
+    // Fetch files for each submission and generate signed URLs
     const submissionsWithFiles = await Promise.all(
       (submissionsData || []).map(async (submission) => {
         const { data: files } = await supabase
@@ -95,9 +96,30 @@ const AdminFormSubmissions = () => {
           .select("*")
           .eq("submission_id", submission.id);
         
+        // Generate signed URLs for each file
+        const filesWithSignedUrls = await Promise.all(
+          (files || []).map(async (file) => {
+            // Extract the file path from the URL
+            const urlParts = file.file_url.split("/form-submissions/");
+            const filePath = urlParts[1] || "";
+            
+            if (filePath) {
+              const { data: signedUrlData } = await supabase.storage
+                .from("form-submissions")
+                .createSignedUrl(filePath, 3600); // 1 hour expiry
+              
+              return {
+                ...file,
+                signed_url: signedUrlData?.signedUrl || file.file_url,
+              };
+            }
+            return file;
+          })
+        );
+        
         return {
           ...submission,
-          files: files || [],
+          files: filesWithSignedUrls,
         };
       })
     );
@@ -371,7 +393,7 @@ const AdminFormSubmissions = () => {
                           )}
                         </div>
                       </div>
-                      <a href={file.file_url} target="_blank" rel="noopener noreferrer">
+                      <a href={file.signed_url || file.file_url} target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="sm">
                           <Download className="h-4 w-4 mr-1" />
                           Download
