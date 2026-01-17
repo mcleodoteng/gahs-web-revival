@@ -43,10 +43,16 @@ const pages = [
     sections: ["gallery_images"]
   },
   { 
-    name: "Resources", 
-    slug: "resources", 
-    description: "Downloadable resources and documents",
-    sections: ["resources_list"]
+    name: "Forms & Publications", 
+    slug: "forms-publications", 
+    description: "Downloadable resources, application forms, and publications",
+    sections: ["hero", "resources_list"]
+  },
+  { 
+    name: "Form Submission", 
+    slug: "form-submission", 
+    description: "Form submission portal for uploading completed documents",
+    sections: ["hero", "submission_form"]
   },
   { 
     name: "Testimonials", 

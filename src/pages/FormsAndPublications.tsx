@@ -201,7 +201,7 @@ const applicationFormCategories = ["All", "Application Forms", "Guidelines", "Tr
 const publicationCategories = ["All", "Annual Reports", "Monthly Reports", "Newsletters"];
 
 const ResourcesPage = () => {
-  const { isLoading, getSection } = usePageContent("resources");
+  const { isLoading, getSection } = usePageContent("forms-publications");
   const [selectedApplicationCategory, setSelectedApplicationCategory] = useState("All");
   const [selectedPublicationCategory, setSelectedPublicationCategory] = useState("All");
   const [applicationSearchQuery, setApplicationSearchQuery] = useState("");
