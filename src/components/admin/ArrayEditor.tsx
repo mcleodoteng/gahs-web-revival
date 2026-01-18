@@ -4,6 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -214,6 +224,7 @@ const FileUploadInput = ({
 
 export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: ArrayEditorProps) => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
   const items = Array.isArray(value) ? value : [];
 
@@ -249,6 +260,12 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
     setExpandedItems(newExpanded);
   };
 
+  const confirmRemove = () => {
+    if (deleteIndex === null) return;
+    removeItem(deleteIndex);
+    setDeleteIndex(null);
+  };
+
   const updateItem = (index: number, key: string, fieldValue: unknown) => {
     const newItems = [...items];
     newItems[index] = { ...(newItems[index] as Record<string, unknown>), [key]: fieldValue };
@@ -258,11 +275,11 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
   const moveItem = (index: number, direction: "up" | "down") => {
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= items.length) return;
-    
+
     const newItems = [...items];
     [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
     onChange(newItems);
-    
+
     // Update expanded state
     const newExpanded = new Set<number>();
     expandedItems.forEach((i) => {
@@ -348,7 +365,8 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => removeItem(index)}
+                      onClick={() => setDeleteIndex(index)}
+                      aria-label={`Remove ${itemLabel.toLowerCase()}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -442,6 +460,22 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
             <Plus className="h-4 w-4 mr-2" />
             Add {itemLabel}
           </Button>
+
+          <AlertDialog open={deleteIndex !== null} onOpenChange={(open) => !open && setDeleteIndex(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove {itemLabel}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to remove this {itemLabel.toLowerCase()}? This change will be saved when you click
+                  “Save Changes”.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmRemove}>Remove</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
     </div>
