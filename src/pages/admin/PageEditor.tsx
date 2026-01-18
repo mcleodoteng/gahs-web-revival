@@ -35,12 +35,14 @@ import {
   ExternalLink,
   Upload,
   Image as ImageIcon,
+  RotateCcw,
 } from "lucide-react";
 import { useCMS, PageContent } from "@/hooks/useCMS";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrayEditor, ArrayFieldConfig } from "@/components/admin/ArrayEditor";
+import { defaultPageContent } from "@/lib/defaultContent";
 
 // Define array field configurations for visual editing
 const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
@@ -501,11 +503,13 @@ const PageEditor = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { content, isLoading, updateContent, createContent } = useCMS();
+  const { content, isLoading, updateContent, createContent, fetchContent } = useCMS();
   const [editingSection, setEditingSection] = useState<PageContent | null>(null);
   const [editFormData, setEditFormData] = useState<Record<string, unknown>>({});
   const [newSectionKey, setNewSectionKey] = useState("");
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [restoreTarget, setRestoreTarget] = useState<{ type: "page" | "section"; sectionKey?: string } | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const config = slug ? pageConfig[slug] : null;
   const pageContent = content.filter((c) => c.page_slug === slug);
@@ -576,6 +580,74 @@ const PageEditor = () => {
     setHideTarget(null);
   };
 
+  const handleRestoreDefaults = async () => {
+    if (!slug || !restoreTarget) return;
+    
+    setIsRestoring(true);
+    const defaults = defaultPageContent[slug];
+    
+    if (!defaults) {
+      toast({
+        title: "No defaults available",
+        description: "Default content is not available for this page.",
+        variant: "destructive",
+      });
+      setIsRestoring(false);
+      setRestoreTarget(null);
+      return;
+    }
+
+    try {
+      if (restoreTarget.type === "page") {
+        // Restore all sections for the page
+        for (const defaultSection of defaults) {
+          const existingSection = pageContent.find((c) => c.section_key === defaultSection.section_key);
+          if (existingSection) {
+            await updateContent(existingSection.id, { content: defaultSection.content, is_active: true });
+          } else {
+            await createContent(slug, defaultSection.section_key, defaultSection.content, defaultSection.sort_order);
+          }
+        }
+        toast({
+          title: "Page restored",
+          description: "All sections have been restored to their default content.",
+        });
+      } else if (restoreTarget.type === "section" && restoreTarget.sectionKey) {
+        // Restore single section
+        const defaultSection = defaults.find((d) => d.section_key === restoreTarget.sectionKey);
+        const existingSection = pageContent.find((c) => c.section_key === restoreTarget.sectionKey);
+        
+        if (defaultSection) {
+          if (existingSection) {
+            await updateContent(existingSection.id, { content: defaultSection.content, is_active: true });
+          } else {
+            await createContent(slug, restoreTarget.sectionKey, defaultSection.content, defaultSection.sort_order);
+          }
+          toast({
+            title: "Section restored",
+            description: "The section has been restored to its default content.",
+          });
+        } else {
+          toast({
+            title: "No default available",
+            description: "Default content is not available for this section.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to restore defaults. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    setIsRestoring(false);
+    setRestoreTarget(null);
+    await fetchContent();
+  };
+
 
 
 
@@ -613,13 +685,23 @@ const PageEditor = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Link to={`/${slug === "home" ? "" : slug}`} target="_blank">
               <Button variant="outline" className="gap-2">
                 <ExternalLink className="h-4 w-4" />
                 Preview
               </Button>
             </Link>
+            {slug && defaultPageContent[slug] && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setRestoreTarget({ type: "page" })}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Restore All Defaults
+              </Button>
+            )}
             {availableSections.length > 0 && (
               <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
                 <DialogTrigger asChild>
@@ -702,6 +784,16 @@ const PageEditor = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {slug && defaultPageContent[slug]?.some((d) => d.section_key === section.section_key) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setRestoreTarget({ type: "section", sectionKey: section.section_key })}
+                          title="Restore section defaults"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -835,6 +927,39 @@ const PageEditor = () => {
             <AlertDialogCancel>No, Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleToggleActive}>
               Yes, {hideTarget?.is_active ? "Hide" : "Show"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Restore Defaults Confirmation Dialog */}
+      <AlertDialog open={!!restoreTarget} onOpenChange={(open) => !open && setRestoreTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore Defaults</AlertDialogTitle>
+            <AlertDialogDescription>
+              {restoreTarget?.type === "page" ? (
+                <>
+                  Are you sure you want to restore <strong>all sections</strong> on this page to their default content?
+                  This will overwrite your current content and cannot be undone.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to restore the{" "}
+                  <strong>
+                    {restoreTarget?.sectionKey
+                      ?.replace(/_/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </strong>{" "}
+                  section to its default content? This will overwrite your current content and cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRestoring}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestoreDefaults} disabled={isRestoring}>
+              {isRestoring ? "Restoring..." : "Restore Defaults"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
