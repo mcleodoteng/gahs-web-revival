@@ -29,7 +29,6 @@ import {
   ArrowLeft,
   Plus,
   Save,
-  Trash2,
   Eye,
   EyeOff,
   GripVertical,
@@ -502,12 +501,11 @@ const PageEditor = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { content, isLoading, updateContent, createContent, deleteContent } = useCMS();
+  const { content, isLoading, updateContent, createContent } = useCMS();
   const [editingSection, setEditingSection] = useState<PageContent | null>(null);
   const [editFormData, setEditFormData] = useState<Record<string, unknown>>({});
   const [newSectionKey, setNewSectionKey] = useState("");
   const [showNewDialog, setShowNewDialog] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<PageContent | null>(null);
 
   const config = slug ? pageConfig[slug] : null;
   const pageContent = content.filter((c) => c.page_slug === slug);
@@ -578,11 +576,8 @@ const PageEditor = () => {
     setHideTarget(null);
   };
 
-  const handleDeleteSection = async () => {
-    if (!deleteTarget) return;
-    await deleteContent(deleteTarget.id);
-    setDeleteTarget(null);
-  };
+
+
 
   const handleCreateSection = async () => {
     if (!newSectionKey || !slug) return;
@@ -726,14 +721,6 @@ const PageEditor = () => {
                       >
                         Edit
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteTarget(section)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -824,29 +811,6 @@ const PageEditor = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Section</AlertDialogTitle>
-              <AlertDialogDescription>
-                Do you want to delete the section{" "}
-                <strong>
-                  {deleteTarget?.section_key
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (c) => c.toUpperCase())}
-                </strong>
-                ? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>No, Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteSection} className="bg-destructive hover:bg-destructive/90">
-                Yes, Delete
-              </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Hide/Show Confirmation Dialog */}
       <AlertDialog open={!!hideTarget} onOpenChange={(open) => !open && setHideTarget(null)}>
