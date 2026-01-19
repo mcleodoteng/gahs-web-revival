@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
-import { X } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -23,12 +23,13 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  "group pointer-events-auto relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl border-2 p-4 pr-6 shadow-xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
-        default: "border bg-background text-foreground",
-        destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+        default: "border-gold/30 bg-gradient-to-r from-gold-light via-background to-background text-foreground",
+        destructive: "destructive group border-destructive/30 bg-gradient-to-r from-destructive/10 via-background to-background text-foreground",
+        success: "border-green-500/30 bg-gradient-to-r from-green-50 via-background to-background text-foreground dark:from-green-950/30",
       },
     },
     defaultVariants: {
@@ -94,6 +95,32 @@ const ToastDescription = React.forwardRef<
 ));
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
+// Icon component for toasts
+const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success" | null }) => {
+  const iconClasses = "h-5 w-5";
+  
+  switch (variant) {
+    case "destructive":
+      return (
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-destructive/20">
+          <AlertCircle className={cn(iconClasses, "text-destructive")} />
+        </div>
+      );
+    case "success":
+      return (
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-500/20">
+          <CheckCircle2 className={cn(iconClasses, "text-green-600 dark:text-green-400")} />
+        </div>
+      );
+    default:
+      return (
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gold/20">
+          <Info className={cn(iconClasses, "text-gold")} />
+        </div>
+      );
+  }
+};
+
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 
 type ToastActionElement = React.ReactElement<typeof ToastAction>;
@@ -108,4 +135,5 @@ export {
   ToastDescription,
   ToastClose,
   ToastAction,
+  ToastIcon,
 };
