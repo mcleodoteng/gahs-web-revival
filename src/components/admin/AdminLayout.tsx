@@ -85,12 +85,9 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           <div className="p-5 border-b border-border/50">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gold/20 rounded-xl blur-lg group-hover:bg-gold/30 transition-colors" />
-                  <img src={gahsLogo} alt="GAHS" className="relative h-12 w-12 rounded-xl object-cover ring-2 ring-gold/30" />
-                </div>
+                <img src={gahsLogo} alt="GAHS" className="h-12 w-12 rounded-xl object-cover" />
                 <div>
-                  <p className="text-lg font-bold bg-gradient-to-r from-gold to-gold-dark bg-clip-text text-transparent">GAHS</p>
+                  <p className="text-lg font-bold text-gold">GAHS</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Sparkles className="h-3 w-3 text-gold" />
                     Admin Panel
@@ -125,7 +122,7 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                     onClick={() => setSidebarOpen(false)}
                     className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-gradient-to-r from-gold to-gold-dark text-white shadow-lg shadow-gold/25"
+                        ? "bg-gold text-gold-foreground shadow-lg shadow-gold/25"
                         : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                     }`}
                   >
@@ -188,18 +185,15 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Admin</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                <span className="font-semibold bg-gradient-to-r from-gold to-gold-dark bg-clip-text text-transparent">{title}</span>
+                <span className="font-semibold text-gold">{title}</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground hidden sm:block">
                 {user.email}
               </span>
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gold/20 rounded-full blur-md group-hover:bg-gold/30 transition-colors" />
-                <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-gold to-gold-dark text-white flex items-center justify-center text-sm font-bold shadow-lg">
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
+              <div className="h-10 w-10 rounded-full bg-gold text-gold-foreground flex items-center justify-center text-sm font-bold shadow-md">
+                {user.email?.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
