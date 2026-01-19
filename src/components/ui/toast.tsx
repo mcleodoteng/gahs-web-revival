@@ -23,13 +23,13 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl border-2 p-4 pr-6 shadow-xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  "group pointer-events-auto relative flex w-full items-center overflow-hidden rounded-xl border shadow-xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
-        default: "border-gold/30 bg-gradient-to-r from-gold-light via-background to-background text-foreground",
-        destructive: "destructive group border-destructive/30 bg-gradient-to-r from-destructive/10 via-background to-background text-foreground",
-        success: "border-green-500/30 bg-gradient-to-r from-green-50 via-background to-background text-foreground dark:from-green-950/30",
+        default: "border-gold/30 bg-background text-foreground",
+        destructive: "destructive group border-destructive/30 bg-background text-foreground",
+        success: "border-green-500/30 bg-background text-foreground",
       },
     },
     defaultVariants: {
@@ -95,30 +95,40 @@ const ToastDescription = React.forwardRef<
 ));
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
-// Icon component for toasts
+// Icon component for toasts - positioned on the far left edge
 const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success" | null }) => {
   const iconClasses = "h-5 w-5";
   
-  switch (variant) {
-    case "destructive":
-      return (
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-destructive/20">
-          <AlertCircle className={cn(iconClasses, "text-destructive")} />
-        </div>
-      );
-    case "success":
-      return (
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-500/20">
-          <CheckCircle2 className={cn(iconClasses, "text-green-600 dark:text-green-400")} />
-        </div>
-      );
-    default:
-      return (
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gold/20">
-          <Info className={cn(iconClasses, "text-gold")} />
-        </div>
-      );
-  }
+  const getIconConfig = () => {
+    switch (variant) {
+      case "destructive":
+        return {
+          bgClass: "bg-destructive/20",
+          icon: <AlertCircle className={cn(iconClasses, "text-destructive")} />
+        };
+      case "success":
+        return {
+          bgClass: "bg-green-500/20",
+          icon: <CheckCircle2 className={cn(iconClasses, "text-green-600 dark:text-green-400")} />
+        };
+      default:
+        return {
+          bgClass: "bg-gold",
+          icon: <Info className={cn(iconClasses, "text-white")} />
+        };
+    }
+  };
+
+  const { bgClass, icon } = getIconConfig();
+  
+  return (
+    <div className={cn(
+      "flex items-center justify-center w-12 h-full min-h-[60px] -my-[1px] -ml-[1px] rounded-l-xl",
+      bgClass
+    )}>
+      {icon}
+    </div>
+  );
 };
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;

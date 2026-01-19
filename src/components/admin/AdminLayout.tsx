@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,10 +12,10 @@ import {
   Menu,
   MessageSquare,
   FileCheck,
+  X,
+  Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 interface AdminLayoutProps {
@@ -24,12 +24,12 @@ interface AdminLayoutProps {
 }
 
 const sidebarLinks = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Pages", href: "/admin/pages", icon: FileText },
-  { name: "Messages", href: "/admin/messages", icon: MessageSquare },
-  { name: "Application Forms", href: "/admin/form-submissions", icon: FileCheck },
-  { name: "Media", href: "/admin/media", icon: Image },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, color: "from-blue-500 to-blue-600" },
+  { name: "Pages", href: "/admin/pages", icon: FileText, color: "from-purple-500 to-purple-600" },
+  { name: "Messages", href: "/admin/messages", icon: MessageSquare, color: "from-green-500 to-green-600" },
+  { name: "Application Forms", href: "/admin/form-submissions", icon: FileCheck, color: "from-orange-500 to-orange-600" },
+  { name: "Media", href: "/admin/media", icon: Image, color: "from-pink-500 to-pink-600" },
+  { name: "Settings", href: "/admin/settings", icon: Settings, color: "from-gray-500 to-gray-600" },
 ];
 
 export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
@@ -47,7 +47,7 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-gold border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -62,69 +62,111 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border transform transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-72 bg-gradient-to-b from-card via-card to-card/95 border-r border-border/50 shadow-2xl transform transition-transform duration-300 ease-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 border-b border-border">
-            <Link to="/" className="flex items-center gap-3">
-              <img src={gahsLogo} alt="GAHS" className="h-10 w-auto" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">GAHS</p>
-                <p className="text-xs text-muted-foreground">Admin Panel</p>
-              </div>
-            </Link>
+          {/* Logo Section */}
+          <div className="p-5 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-3 group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gold/20 rounded-xl blur-lg group-hover:bg-gold/30 transition-colors" />
+                  <img src={gahsLogo} alt="GAHS" className="relative h-12 w-12 rounded-xl object-cover ring-2 ring-gold/30" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold bg-gradient-to-r from-gold to-gold-dark bg-clip-text text-transparent">GAHS</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-gold" />
+                    Admin Panel
+                  </p>
+                </div>
+              </Link>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-2 rounded-lg hover:bg-muted/80 transition-colors"
+              >
+                <X className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
-            {sidebarLinks.map((link) => {
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
+              Menu
+            </p>
+            {sidebarLinks.map((link, index) => {
               const isActive = location.pathname === link.href;
               return (
-                <Link
+                <motion.div
                   key={link.name}
-                  to={link.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <link.icon className="h-5 w-5" />
-                  {link.name}
-                </Link>
+                  <Link
+                    to={link.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-gradient-to-r from-gold to-gold-dark text-white shadow-lg shadow-gold/25"
+                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg transition-all duration-200 ${
+                      isActive 
+                        ? "bg-white/20" 
+                        : `bg-gradient-to-br ${link.color} opacity-80 group-hover:opacity-100`
+                    }`}>
+                      <link.icon className={`h-4 w-4 ${isActive ? "text-white" : "text-white"}`} />
+                    </div>
+                    <span>{link.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeIndicator"
+                        className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+                      />
+                    )}
+                  </Link>
+                </motion.div>
               );
             })}
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-border space-y-2">
+          <div className="p-4 border-t border-border/50 space-y-2 bg-muted/30">
             <Link
               to="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-background hover:text-foreground transition-all duration-200 group"
             >
-              <Home className="h-5 w-5" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 group-hover:shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-200">
+                <Home className="h-4 w-4 text-white" />
+              </div>
               View Site
             </Link>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all duration-200 w-full group"
             >
-              <LogOut className="h-5 w-5" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:shadow-lg group-hover:shadow-red-500/25 transition-all duration-200">
+                <LogOut className="h-4 w-4 text-white" />
+              </div>
               Sign Out
             </button>
           </div>
@@ -132,29 +174,32 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-72">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-muted"
+                className="lg:hidden p-2.5 rounded-xl hover:bg-muted/80 transition-colors"
               >
                 <Menu className="h-5 w-5" />
               </button>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Admin</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{title}</span>
+                <span className="font-semibold bg-gradient-to-r from-gold to-gold-dark bg-clip-text text-transparent">{title}</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground hidden sm:block">
                 {user.email}
               </span>
-              <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                {user.email?.charAt(0).toUpperCase()}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gold/20 rounded-full blur-md group-hover:bg-gold/30 transition-colors" />
+                <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-gold to-gold-dark text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
               </div>
             </div>
           </div>
