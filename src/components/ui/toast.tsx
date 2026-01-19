@@ -23,13 +23,13 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center overflow-hidden rounded-xl border shadow-xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  "group pointer-events-auto relative flex w-full items-stretch overflow-hidden rounded-lg border shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
-        default: "border-gold/30 bg-background text-foreground",
-        destructive: "destructive group border-destructive/30 bg-background text-foreground",
-        success: "border-green-500/30 bg-background text-foreground",
+        default: "border-border bg-card text-card-foreground",
+        destructive: "destructive group border-destructive/40 bg-card text-card-foreground",
+        success: "border-primary/40 bg-card text-card-foreground",
       },
     },
     defaultVariants: {
@@ -95,7 +95,7 @@ const ToastDescription = React.forwardRef<
 ));
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
-// Icon component for toasts - positioned on the far left edge
+// Icon component for toasts - positioned on the far left edge touching all borders
 const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success" | null }) => {
   const iconClasses = "h-5 w-5";
   
@@ -103,18 +103,18 @@ const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success
     switch (variant) {
       case "destructive":
         return {
-          bgClass: "bg-destructive/20",
-          icon: <AlertCircle className={cn(iconClasses, "text-destructive")} />
+          bgClass: "bg-destructive",
+          icon: <AlertCircle className={cn(iconClasses, "text-destructive-foreground")} />
         };
       case "success":
         return {
-          bgClass: "bg-green-500/20",
-          icon: <CheckCircle2 className={cn(iconClasses, "text-green-600 dark:text-green-400")} />
+          bgClass: "bg-primary",
+          icon: <CheckCircle2 className={cn(iconClasses, "text-primary-foreground")} />
         };
       default:
         return {
           bgClass: "bg-gold",
-          icon: <Info className={cn(iconClasses, "text-white")} />
+          icon: <Info className={cn(iconClasses, "text-gold-foreground")} />
         };
     }
   };
@@ -123,7 +123,7 @@ const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success
   
   return (
     <div className={cn(
-      "flex items-center justify-center w-12 h-full min-h-[60px] -my-[1px] -ml-[1px] rounded-l-xl",
+      "flex items-center justify-center w-14 self-stretch rounded-l-lg",
       bgClass
     )}>
       {icon}
