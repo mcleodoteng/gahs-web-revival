@@ -10,7 +10,7 @@ export function Toaster() {
         return (
           <Toast key={id} variant={variant} {...props}>
             <ToastIcon variant={variant} />
-            <div className="flex items-center justify-between flex-1 py-3 pr-8">
+            <div className="flex items-center justify-between flex-1 py-3 pl-4 pr-8">
               <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}
                 {description && <ToastDescription>{description}</ToastDescription>}

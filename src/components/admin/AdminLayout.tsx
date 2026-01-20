@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 interface AdminLayoutProps {
@@ -24,12 +25,12 @@ interface AdminLayoutProps {
 }
 
 const sidebarLinks = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, color: "from-blue-500 to-blue-600" },
-  { name: "Pages", href: "/admin/pages", icon: FileText, color: "from-purple-500 to-purple-600" },
-  { name: "Messages", href: "/admin/messages", icon: MessageSquare, color: "from-green-500 to-green-600" },
-  { name: "Application Forms", href: "/admin/form-submissions", icon: FileCheck, color: "from-orange-500 to-orange-600" },
-  { name: "Media", href: "/admin/media", icon: Image, color: "from-pink-500 to-pink-600" },
-  { name: "Settings", href: "/admin/settings", icon: Settings, color: "from-gray-500 to-gray-600" },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, color: "from-blue-500 to-blue-600", badgeKey: null },
+  { name: "Pages", href: "/admin/pages", icon: FileText, color: "from-purple-500 to-purple-600", badgeKey: null },
+  { name: "Messages", href: "/admin/messages", icon: MessageSquare, color: "from-green-500 to-green-600", badgeKey: "messages" },
+  { name: "Application Forms", href: "/admin/form-submissions", icon: FileCheck, color: "from-orange-500 to-orange-600", badgeKey: "forms" },
+  { name: "Media", href: "/admin/media", icon: Image, color: "from-pink-500 to-pink-600", badgeKey: null },
+  { name: "Settings", href: "/admin/settings", icon: Settings, color: "from-gray-500 to-gray-600", badgeKey: null },
 ];
 
 export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
@@ -37,6 +38,38 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadForms, setUnreadForms] = useState(0);
+
+  // Fetch unread counts
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      // Fetch unread messages count
+      const { count: messagesCount } = await supabase
+        .from('contact_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false);
+      
+      setUnreadMessages(messagesCount || 0);
+
+      // Fetch form submissions count (treating all as "unread" for now)
+      const { count: formsCount } = await supabase
+        .from('form_submissions')
+        .select('*', { count: 'exact', head: true });
+      
+      setUnreadForms(formsCount || 0);
+    };
+
+    if (user && isAdmin) {
+      fetchUnreadCounts();
+    }
+  }, [user, isAdmin]);
+
+  const getBadgeCount = (badgeKey: string | null) => {
+    if (badgeKey === 'messages') return unreadMessages;
+    if (badgeKey === 'forms') return unreadForms;
+    return 0;
+  };
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
@@ -109,7 +142,9 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               Menu
             </p>
             {sidebarLinks.map((link, index) => {
-              const isActive = location.pathname === link.href;
+              const isActive = location.pathname === link.href || 
+                (link.href !== "/admin" && location.pathname.startsWith(link.href));
+              const badgeCount = getBadgeCount(link.badgeKey);
               return (
                 <motion.div
                   key={link.name}
@@ -128,16 +163,25 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                   >
                     <div className={`p-2 rounded-lg transition-all duration-200 ${
                       isActive 
-                        ? "bg-white/20" 
+                        ? "bg-gold-foreground/20" 
                         : `bg-gradient-to-br ${link.color} opacity-80 group-hover:opacity-100`
                     }`}>
-                      <link.icon className={`h-4 w-4 ${isActive ? "text-white" : "text-white"}`} />
+                      <link.icon className={`h-4 w-4 ${isActive ? "text-gold-foreground" : "text-white"}`} />
                     </div>
-                    <span>{link.name}</span>
-                    {isActive && (
+                    <span className="flex-1">{link.name}</span>
+                    {badgeCount > 0 && (
+                      <span className={`min-w-[20px] h-5 px-1.5 flex items-center justify-center text-xs font-bold rounded-full ${
+                        isActive 
+                          ? "bg-gold-foreground/20 text-gold-foreground" 
+                          : "bg-destructive text-destructive-foreground"
+                      }`}>
+                        {badgeCount > 99 ? '99+' : badgeCount}
+                      </span>
+                    )}
+                    {isActive && !badgeCount && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+                        className="w-1.5 h-1.5 rounded-full bg-gold-foreground/60"
                       />
                     )}
                   </Link>
