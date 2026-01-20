@@ -14,10 +14,20 @@ import {
   FileCheck,
   X,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 interface AdminLayoutProps {
@@ -26,6 +36,7 @@ interface AdminLayoutProps {
 }
 
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+const WARNING_TIME = 9 * 60 * 1000; // 9 minutes - show warning 1 minute before logout
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard, color: "from-blue-500 to-blue-600", badgeKey: null },
@@ -44,7 +55,11 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadForms, setUnreadForms] = useState(0);
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  const [countdown, setCountdown] = useState(60);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch unread counts
   const fetchUnreadCounts = useCallback(async () => {
@@ -103,13 +118,40 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     };
   }, [user, isAdmin, fetchUnreadCounts]);
 
+  // Clear all timers
+  const clearAllTimers = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+  }, []);
+
   // Inactivity timeout logic
   const resetTimeout = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    clearAllTimers();
+    setShowSessionWarning(false);
+    setCountdown(60);
     
+    // Warning timeout at 9 minutes
+    warningTimeoutRef.current = setTimeout(() => {
+      setShowSessionWarning(true);
+      setCountdown(60);
+      
+      // Start countdown
+      countdownRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, WARNING_TIME);
+    
+    // Logout timeout at 10 minutes
     timeoutRef.current = setTimeout(async () => {
+      clearAllTimers();
+      setShowSessionWarning(false);
       toast({
         title: "Session Expired",
         description: "You have been logged out due to inactivity.",
@@ -118,7 +160,18 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       await signOut();
       navigate("/auth");
     }, INACTIVITY_TIMEOUT);
-  }, [signOut, navigate, toast]);
+  }, [signOut, navigate, toast, clearAllTimers]);
+
+  // Extend session handler
+  const handleExtendSession = useCallback(() => {
+    setShowSessionWarning(false);
+    resetTimeout();
+    toast({
+      title: "Session Extended",
+      description: "Your session has been extended.",
+      variant: "success",
+    });
+  }, [resetTimeout, toast]);
 
   useEffect(() => {
     if (!user || !isAdmin) return;
@@ -127,7 +180,10 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
 
     const handleActivity = () => {
-      resetTimeout();
+      // Don't reset if warning modal is showing (user must click extend)
+      if (!showSessionWarning) {
+        resetTimeout();
+      }
     };
 
     // Add event listeners
@@ -144,12 +200,10 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         document.removeEventListener(event, handleActivity);
       });
       
-      // Clear timeout on unmount
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      // Clear all timers on unmount
+      clearAllTimers();
     };
-  }, [user, isAdmin, resetTimeout]);
+  }, [user, isAdmin, resetTimeout, showSessionWarning, clearAllTimers]);
 
   const getBadgeCount = (badgeKey: string | null) => {
     if (badgeKey === 'messages') return unreadMessages;
@@ -340,6 +394,32 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           </motion.div>
         </main>
       </div>
+
+      {/* Session Expiry Warning Modal */}
+      <AlertDialog open={showSessionWarning} onOpenChange={setShowSessionWarning}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-gold/20">
+                <AlertTriangle className="h-6 w-6 text-gold" />
+              </div>
+              <AlertDialogTitle className="text-xl">Session Expiring Soon</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-4 text-base">
+              Your session will expire in <span className="font-bold text-destructive">{countdown} seconds</span> due to inactivity.
+              Click below to continue your session.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2 pt-4">
+            <AlertDialogAction
+              onClick={handleExtendSession}
+              className="bg-gold hover:bg-gold/90 text-gold-foreground px-8"
+            >
+              Stay Logged In
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
