@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Key, User, Shield, Trash2, UserPlus } from "lucide-react";
+import { Save, Key, User, Shield, Trash2, UserPlus, Loader2 } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -31,6 +32,7 @@ const AdminSettings = () => {
   const { toast } = useToast();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRole, setNewUserRole] = useState<"admin" | "user">("admin");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
@@ -84,42 +86,43 @@ const AdminSettings = () => {
     setIsCreatingUser(true);
 
     try {
-      // Create user using Supabase admin function
-      // Note: This requires admin/service role key, which we'd need an edge function for
-      // For now, we'll use signUp but explain the limitation
-      const { data, error } = await supabase.auth.signUp({
-        email: newUserEmail,
-        password: newUserPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await supabase.functions.invoke("create-admin-user", {
+        body: {
+          email: newUserEmail,
+          password: newUserPassword,
+          role: newUserRole,
         },
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Add user role
-        const { error: roleError } = await supabase.from("user_roles").insert({
-          user_id: data.user.id,
-          role: "user",
-        });
-
-        if (roleError) {
-          console.error("Error adding user role:", roleError);
-        }
-
-        toast({
-          title: "Success",
-          description: "User created successfully. They will receive an email to confirm their account.",
-        });
-        setNewUserEmail("");
-        setNewUserPassword("");
-        fetchAdminUsers();
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to create user");
       }
-    } catch (error: any) {
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      toast({
+        title: "Success",
+        description: `User ${newUserEmail} created successfully with ${newUserRole} role.`,
+        variant: "success",
+      });
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setNewUserRole("admin");
+      fetchAdminUsers();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create user.";
       toast({
         title: "Error",
-        description: error.message || "Failed to create user.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -350,7 +353,7 @@ const AdminSettings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="newEmail">Email Address</Label>
                       <Input
@@ -362,14 +365,26 @@ const AdminSettings = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword">Initial Password</Label>
+                      <Label htmlFor="newUserPassword">Initial Password</Label>
                       <Input
-                        id="newPassword"
+                        id="newUserPassword"
                         type="password"
                         placeholder="Minimum 6 characters"
                         value={newUserPassword}
                         onChange={(e) => setNewUserPassword(e.target.value)}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <Select value={newUserRole} onValueChange={(value: "admin" | "user") => setNewUserRole(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="user">User</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <Button
@@ -377,11 +392,20 @@ const AdminSettings = () => {
                     disabled={isCreatingUser || !newUserEmail || !newUserPassword}
                     className="gap-2"
                   >
-                    <UserPlus className="h-4 w-4" />
-                    {isCreatingUser ? "Creating..." : "Create User"}
+                    {isCreatingUser ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        Create User
+                      </>
+                    )}
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    Users can reset their password using the "Forgot password" link on the login page.
+                    New users can log in immediately with the provided credentials. Email confirmation is automatic.
                   </p>
                 </CardContent>
               </Card>
