@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -17,12 +17,15 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import gahsLogo from "@/assets/gahs-logo.jpeg";
 
 interface AdminLayoutProps {
   children: ReactNode;
   title: string;
 }
+
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard, color: "from-blue-500 to-blue-600", badgeKey: null },
@@ -37,33 +40,116 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadForms, setUnreadForms] = useState(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch unread counts
-  useEffect(() => {
-    const fetchUnreadCounts = async () => {
-      // Fetch unread messages count
-      const { count: messagesCount } = await supabase
-        .from('contact_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false);
-      
-      setUnreadMessages(messagesCount || 0);
+  const fetchUnreadCounts = useCallback(async () => {
+    if (!user || !isAdmin) return;
+    
+    // Fetch unread messages count
+    const { count: messagesCount } = await supabase
+      .from('contact_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_read', false);
+    
+    setUnreadMessages(messagesCount || 0);
 
-      // Fetch form submissions count (treating all as "unread" for now)
-      const { count: formsCount } = await supabase
-        .from('form_submissions')
-        .select('*', { count: 'exact', head: true });
-      
-      setUnreadForms(formsCount || 0);
+    // Fetch form submissions count
+    const { count: formsCount } = await supabase
+      .from('form_submissions')
+      .select('*', { count: 'exact', head: true });
+    
+    setUnreadForms(formsCount || 0);
+  }, [user, isAdmin]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchUnreadCounts();
+  }, [fetchUnreadCounts]);
+
+  // Real-time subscriptions for notifications
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+
+    const messagesChannel = supabase
+      .channel('contact_messages_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'contact_messages' },
+        () => {
+          fetchUnreadCounts();
+        }
+      )
+      .subscribe();
+
+    const formsChannel = supabase
+      .channel('form_submissions_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'form_submissions' },
+        () => {
+          fetchUnreadCounts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(formsChannel);
+    };
+  }, [user, isAdmin, fetchUnreadCounts]);
+
+  // Inactivity timeout logic
+  const resetTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(async () => {
+      toast({
+        title: "Session Expired",
+        description: "You have been logged out due to inactivity.",
+        variant: "destructive",
+      });
+      await signOut();
+      navigate("/auth");
+    }, INACTIVITY_TIMEOUT);
+  }, [signOut, navigate, toast]);
+
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+
+    // Activity events to track
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+
+    const handleActivity = () => {
+      resetTimeout();
     };
 
-    if (user && isAdmin) {
-      fetchUnreadCounts();
-    }
-  }, [user, isAdmin]);
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleActivity);
+    });
+
+    // Start the initial timeout
+    resetTimeout();
+
+    return () => {
+      // Cleanup event listeners
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      
+      // Clear timeout on unmount
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [user, isAdmin, resetTimeout]);
 
   const getBadgeCount = (badgeKey: string | null) => {
     if (badgeKey === 'messages') return unreadMessages;
