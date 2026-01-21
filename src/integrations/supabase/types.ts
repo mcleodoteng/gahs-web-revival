@@ -96,6 +96,7 @@ export type Database = {
           last_name: string
           other_names: string
           phone: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -105,6 +106,7 @@ export type Database = {
           last_name: string
           other_names: string
           phone: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -114,6 +116,7 @@ export type Database = {
           last_name?: string
           other_names?: string
           phone?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []

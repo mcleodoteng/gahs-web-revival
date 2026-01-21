@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Download, Trash2, FileText, User, Mail, Phone, Calendar } from "lucide-react";
+import { Search, Eye, Download, Trash2, FileText, User, Mail, Phone, Calendar, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface SubmissionFile {
@@ -51,6 +52,7 @@ interface FormSubmission {
   phone: string;
   email: string;
   created_at: string;
+  status: "pending" | "completed";
   files?: SubmissionFile[];
 }
 
@@ -68,6 +70,8 @@ const AdminFormSubmissions = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FormSubmission | null>(null);
+  const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
+  const [updatingStatusFor, setUpdatingStatusFor] = useState<string | null>(null);
 
   const fetchSubmissions = async () => {
     setIsLoading(true);
@@ -119,6 +123,7 @@ const AdminFormSubmissions = () => {
         
         return {
           ...submission,
+          status: submission.status as "pending" | "completed",
           files: filesWithSignedUrls,
         };
       })
@@ -131,6 +136,38 @@ const AdminFormSubmissions = () => {
   useEffect(() => {
     fetchSubmissions();
   }, []);
+
+  const handleStatusChange = async (submissionId: string, newStatus: "pending" | "completed") => {
+    setUpdatingStatusFor(submissionId);
+    
+    const { error } = await supabase
+      .from("form_submissions")
+      .update({ status: newStatus })
+      .eq("id", submissionId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update status.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: `Submission marked as ${newStatus}.`,
+        variant: "success",
+      });
+      // Update local state
+      setSubmissions(prev => 
+        prev.map(s => s.id === submissionId ? { ...s, status: newStatus } : s)
+      );
+      // Close dialog if open
+      if (selectedSubmission?.id === submissionId) {
+        setSelectedSubmission(prev => prev ? { ...prev, status: newStatus } : null);
+      }
+    }
+    setUpdatingStatusFor(null);
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -158,13 +195,17 @@ const AdminFormSubmissions = () => {
 
   const filteredSubmissions = submissions.filter((s) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = 
       s.last_name.toLowerCase().includes(searchLower) ||
       s.other_names.toLowerCase().includes(searchLower) ||
       s.email.toLowerCase().includes(searchLower) ||
-      s.phone.includes(searchQuery)
-    );
+      s.phone.includes(searchQuery);
+    const matchesTab = s.status === activeTab;
+    return matchesSearch && matchesTab;
   });
+
+  const pendingCount = submissions.filter(s => s.status === "pending").length;
+  const completedCount = submissions.filter(s => s.status === "completed").length;
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "Unknown";
@@ -172,6 +213,121 @@ const AdminFormSubmissions = () => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+
+  const renderSubmissionsTable = () => (
+    <>
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+        </div>
+      ) : filteredSubmissions.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          {searchQuery 
+            ? "No submissions match your search." 
+            : `No ${activeTab} submissions.`}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Forms</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSubmissions.map((submission) => (
+                <TableRow key={submission.id}>
+                  <TableCell>
+                    <div className="font-medium">
+                      {submission.last_name}, {submission.other_names}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {submission.email}
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        {submission.phone}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {submission.files?.map((file) => (
+                        <Badge key={file.id} variant="secondary" className="text-xs">
+                          {formTypeLabels[file.form_type] || file.form_type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(submission.created_at), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {submission.status === "pending" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleStatusChange(submission.id, "completed")}
+                          disabled={updatingStatusFor === submission.id}
+                          className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          {updatingStatusFor === submission.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                          Complete
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleStatusChange(submission.id, "pending")}
+                          disabled={updatingStatusFor === submission.id}
+                          className="gap-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        >
+                          {updatingStatusFor === submission.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Clock className="h-4 w-4" />
+                          )}
+                          Reopen
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedSubmission(submission)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteTarget(submission)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <AdminLayout title="Application Forms">
@@ -204,20 +360,16 @@ const AdminFormSubmissions = () => {
               <p className="text-sm text-muted-foreground">Total Submissions</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-orange-200 bg-orange-50/50">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold">
-                {submissions.filter((s) => s.files?.some((f) => f.form_type === "bond")).length}
-              </div>
-              <p className="text-sm text-muted-foreground">Bond Forms</p>
+              <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
+              <p className="text-sm text-muted-foreground">Pending</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-green-200 bg-green-50/50">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold">
-                {submissions.filter((s) => s.files?.some((f) => f.form_type === "study_leave")).length}
-              </div>
-              <p className="text-sm text-muted-foreground">Study Leave Forms</p>
+              <div className="text-2xl font-bold text-green-600">{completedCount}</div>
+              <p className="text-sm text-muted-foreground">Completed</p>
             </CardContent>
           </Card>
           <Card>
@@ -230,7 +382,7 @@ const AdminFormSubmissions = () => {
           </Card>
         </div>
 
-        {/* Submissions Table */}
+        {/* Submissions Table with Tabs */}
         <Card>
           <CardHeader>
             <CardTitle>Submissions</CardTitle>
@@ -239,83 +391,34 @@ const AdminFormSubmissions = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-              </div>
-            ) : filteredSubmissions.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                {searchQuery ? "No submissions match your search." : "No submissions yet."}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Forms</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSubmissions.map((submission) => (
-                      <TableRow key={submission.id}>
-                        <TableCell>
-                          <div className="font-medium">
-                            {submission.last_name}, {submission.other_names}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {submission.email}
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              {submission.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {submission.files?.map((file) => (
-                              <Badge key={file.id} variant="secondary" className="text-xs">
-                                {formTypeLabels[file.form_type] || file.form_type}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(submission.created_at), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setSelectedSubmission(submission)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setDeleteTarget(submission)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pending" | "completed")}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="pending" className="gap-2">
+                  <Clock className="h-4 w-4" />
+                  Pending
+                  {pendingCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 bg-orange-100 text-orange-700">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="completed" className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Completed
+                  {completedCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700">
+                      {completedCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="pending">
+                {renderSubmissionsTable()}
+              </TabsContent>
+              <TabsContent value="completed">
+                {renderSubmissionsTable()}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
@@ -324,7 +427,21 @@ const AdminFormSubmissions = () => {
       <Dialog open={!!selectedSubmission} onOpenChange={(open) => !open && setSelectedSubmission(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Submission Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Submission Details
+              <Badge 
+                variant={selectedSubmission?.status === "completed" ? "default" : "secondary"}
+                className={selectedSubmission?.status === "completed" 
+                  ? "bg-green-100 text-green-700" 
+                  : "bg-orange-100 text-orange-700"}
+              >
+                {selectedSubmission?.status === "completed" ? (
+                  <><CheckCircle className="h-3 w-3 mr-1" /> Completed</>
+                ) : (
+                  <><Clock className="h-3 w-3 mr-1" /> Pending</>
+                )}
+              </Badge>
+            </DialogTitle>
             <DialogDescription>
               View applicant information and download submitted forms.
             </DialogDescription>
@@ -402,6 +519,38 @@ const AdminFormSubmissions = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Status Action */}
+              <div className="flex justify-end pt-4 border-t">
+                {selectedSubmission.status === "pending" ? (
+                  <Button
+                    onClick={() => handleStatusChange(selectedSubmission.id, "completed")}
+                    disabled={updatingStatusFor === selectedSubmission.id}
+                    className="gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    {updatingStatusFor === selectedSubmission.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
+                    Mark as Completed
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleStatusChange(selectedSubmission.id, "pending")}
+                    disabled={updatingStatusFor === selectedSubmission.id}
+                    className="gap-2"
+                  >
+                    {updatingStatusFor === selectedSubmission.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Clock className="h-4 w-4" />
+                    )}
+                    Reopen as Pending
+                  </Button>
+                )}
               </div>
             </div>
           )}
