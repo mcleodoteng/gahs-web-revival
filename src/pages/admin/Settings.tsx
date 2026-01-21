@@ -16,15 +16,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Key, User, Shield, Trash2, UserPlus, Loader2 } from "lucide-react";
+import { Save, Key, User, Shield, Trash2, UserPlus, Loader2, RefreshCw, Users } from "lucide-react";
+import { format } from "date-fns";
 
-interface AdminUser {
+interface ManagedUser {
   id: string;
   email: string;
   created_at: string;
+  last_sign_in_at: string | null;
+  role: "admin" | "user";
 }
 
 const AdminSettings = () => {
@@ -34,35 +46,43 @@ const AdminSettings = () => {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState<"admin" | "user">("admin");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ManagedUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
 
-  const fetchAdminUsers = async () => {
-    // Fetch all user roles with admin role
-    const { data: roles, error } = await supabase
-      .from("user_roles")
-      .select("user_id, created_at")
-      .eq("role", "admin");
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await supabase.functions.invoke("manage-users", {
+        body: { action: "list" },
+      });
 
-    if (error) {
-      console.error("Error fetching admin users:", error);
-      return;
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      setManagedUsers(response.data.users || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingUsers(false);
     }
-
-    // For now, we'll use the user_id as a placeholder
-    // In a real setup, you'd want to get user emails from an edge function
-    setAdminUsers(
-      roles.map((r) => ({
-        id: r.user_id,
-        email: r.user_id === user?.id ? user?.email || "Current User" : "Admin User",
-        created_at: r.created_at,
-      }))
-    );
   };
 
   useEffect(() => {
-    fetchAdminUsers();
-  }, [user]);
+    fetchUsers();
+  }, []);
 
   const handleCreateUser = async () => {
     if (!newUserEmail || !newUserPassword) {
@@ -86,13 +106,6 @@ const AdminSettings = () => {
     setIsCreatingUser(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
       const response = await supabase.functions.invoke("create-admin-user", {
         body: {
           email: newUserEmail,
@@ -117,7 +130,7 @@ const AdminSettings = () => {
       setNewUserEmail("");
       setNewUserPassword("");
       setNewUserRole("admin");
-      fetchAdminUsers();
+      fetchUsers();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to create user.";
       toast({
@@ -130,29 +143,73 @@ const AdminSettings = () => {
     }
   };
 
+  const handleUpdateRole = async (userId: string, newRole: "admin" | "user") => {
+    setUpdatingRoleFor(userId);
+    try {
+      const response = await supabase.functions.invoke("manage-users", {
+        body: { action: "updateRole", userId, role: newRole },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      toast({
+        title: "Success",
+        description: "User role updated successfully.",
+        variant: "success",
+      });
+      fetchUsers();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update role.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingRoleFor(null);
+    }
+  };
+
   const handleDeleteUser = async () => {
     if (!deleteTarget) return;
 
-    // Remove admin role
-    const { error } = await supabase
-      .from("user_roles")
-      .delete()
-      .eq("user_id", deleteTarget.id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user access.",
-        variant: "destructive",
+    setIsDeleting(true);
+    try {
+      const response = await supabase.functions.invoke("manage-users", {
+        body: { action: "delete", userId: deleteTarget.id },
       });
-    } else {
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
       toast({
         title: "Success",
-        description: "User access removed successfully.",
+        description: "User deleted successfully.",
+        variant: "success",
       });
-      fetchAdminUsers();
+      fetchUsers();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete user.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
-    setDeleteTarget(null);
   };
 
   const [oldPassword, setOldPassword] = useState("");
@@ -191,7 +248,6 @@ const AdminSettings = () => {
     setIsChangingPassword(true);
 
     try {
-      // First verify the old password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user?.email || "",
         password: oldPassword,
@@ -207,7 +263,6 @@ const AdminSettings = () => {
         return;
       }
 
-      // Now update to the new password
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -410,31 +465,119 @@ const AdminSettings = () => {
                 </CardContent>
               </Card>
 
-              {/* Current Admin Users */}
+              {/* All Users List */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Admin Users</CardTitle>
-                  <CardDescription>
-                    Users with administrative access to the dashboard.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
-                          {user?.email?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium">{user?.email}</p>
-                          <p className="text-sm text-muted-foreground">Administrator (You)</p>
-                        </div>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        All Users
+                      </CardTitle>
+                      <CardDescription>
+                        Manage user accounts and their roles.
+                      </CardDescription>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={fetchUsers}
+                      disabled={isLoadingUsers}
+                      className="gap-2"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isLoadingUsers ? "animate-spin" : ""}`} />
+                      Refresh
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    To grant admin access to other users, add them to the user_roles table in the database with role 'admin'.
-                  </p>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingUsers ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : managedUsers.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No users found.
+                    </div>
+                  ) : (
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead>Last Sign In</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {managedUsers.map((managedUser) => (
+                            <TableRow key={managedUser.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                                    {managedUser.email?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p>{managedUser.email}</p>
+                                    {managedUser.id === user?.id && (
+                                      <span className="text-xs text-muted-foreground">(You)</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {managedUser.id === user?.id ? (
+                                  <Badge variant={managedUser.role === "admin" ? "default" : "secondary"}>
+                                    {managedUser.role}
+                                  </Badge>
+                                ) : (
+                                  <Select
+                                    value={managedUser.role}
+                                    onValueChange={(value: "admin" | "user") => handleUpdateRole(managedUser.id, value)}
+                                    disabled={updatingRoleFor === managedUser.id}
+                                  >
+                                    <SelectTrigger className="w-24 h-8">
+                                      {updatingRoleFor === managedUser.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <SelectValue />
+                                      )}
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="admin">Admin</SelectItem>
+                                      <SelectItem value="user">User</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {format(new Date(managedUser.created_at), "MMM d, yyyy")}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {managedUser.last_sign_in_at
+                                  ? format(new Date(managedUser.last_sign_in_at), "MMM d, yyyy")
+                                  : "Never"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {managedUser.id !== user?.id && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeleteTarget(managedUser)}
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -446,16 +589,27 @@ const AdminSettings = () => {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove User Access</AlertDialogTitle>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
-              Do you want to remove access for <strong>{deleteTarget?.email}</strong>?
-              This will revoke their admin privileges.
+              Are you sure you want to delete <strong>{deleteTarget?.email}</strong>?
+              This action cannot be undone and will permanently remove the user account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No, Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive hover:bg-destructive/90">
-              Yes, Remove
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete User"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
