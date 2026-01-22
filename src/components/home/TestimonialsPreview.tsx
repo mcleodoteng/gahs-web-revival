@@ -52,7 +52,7 @@ const defaultTestimonials: Testimonial[] = [
 export const TestimonialsPreview = () => {
   const { getSection } = usePageContent("home");
 
-  const testimonialsContent = getSection<TestimonialsContent>("testimonials_preview", { testimonials: defaultTestimonials })!;
+  const testimonialsContent = getSection<TestimonialsContent>("testimonials", { testimonials: defaultTestimonials })!;
   const testimonials = (testimonialsContent.testimonials || defaultTestimonials).slice(0, 3);
 
   return (
