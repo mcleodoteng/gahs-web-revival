@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +21,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, MailOpen, Trash2, Eye, Calendar, Phone, User } from "lucide-react";
+import { Mail, MailOpen, Trash2, Calendar, Phone, User, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { TablePagination } from "@/components/admin/TablePagination";
 
 interface ContactMessage {
   id: string;
@@ -41,6 +43,9 @@ const AdminMessages = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactMessage | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
 
   const fetchMessages = async () => {
@@ -110,6 +115,32 @@ const AdminMessages = () => {
     }
   };
 
+  // Filter messages based on search query
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery.trim()) return messages;
+    const query = searchQuery.toLowerCase();
+    return messages.filter(
+      (m) =>
+        m.name.toLowerCase().includes(query) ||
+        m.email.toLowerCase().includes(query) ||
+        m.subject.toLowerCase().includes(query) ||
+        m.message.toLowerCase().includes(query) ||
+        (m.phone && m.phone.includes(searchQuery))
+    );
+  }, [messages, searchQuery]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+  const paginatedMessages = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredMessages.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredMessages, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
+
   const unreadCount = messages.filter((m) => !m.is_read).length;
 
   return (
@@ -129,6 +160,17 @@ const AdminMessages = () => {
           )}
         </div>
 
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, subject, or message..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
@@ -140,54 +182,73 @@ const AdminMessages = () => {
               <p className="text-muted-foreground">No messages yet</p>
             </CardContent>
           </Card>
+        ) : filteredMessages.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No messages match your search</p>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="space-y-3">
-            {messages.map((message) => (
-              <Card
-                key={message.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  !message.is_read ? "border-primary/50 bg-primary/5" : ""
-                }`}
-                onClick={() => viewMessage(message)}
-              >
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`p-2 rounded-lg flex-shrink-0 ${
-                        message.is_read
-                          ? "bg-muted text-muted-foreground"
-                          : "bg-primary/10 text-primary"
-                      }`}
-                    >
-                      {message.is_read ? (
-                        <MailOpen className="h-5 w-5" />
-                      ) : (
-                        <Mail className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-semibold text-foreground truncate">
-                            {message.subject}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            From: {message.name} ({message.email})
-                          </p>
-                        </div>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">
-                          {format(new Date(message.created_at), "MMM d, yyyy")}
-                        </span>
+          <>
+            <div className="space-y-3">
+              {paginatedMessages.map((message) => (
+                <Card
+                  key={message.id}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    !message.is_read ? "border-primary/50 bg-primary/5" : ""
+                  }`}
+                  onClick={() => viewMessage(message)}
+                >
+                  <CardContent className="py-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`p-2 rounded-lg flex-shrink-0 ${
+                          message.is_read
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        {message.is_read ? (
+                          <MailOpen className="h-5 w-5" />
+                        ) : (
+                          <Mail className="h-5 w-5" />
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {message.message}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-foreground truncate">
+                              {message.subject}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              From: {message.name} ({message.email})
+                            </p>
+                          </div>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {format(new Date(message.created_at), "MMM d, yyyy")}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {message.message}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredMessages.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </>
         )}
 
         {/* Message Detail Dialog */}
