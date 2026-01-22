@@ -73,10 +73,11 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     
     setUnreadMessages(messagesCount || 0);
 
-    // Fetch form submissions count
+    // Fetch pending form submissions count only
     const { count: formsCount } = await supabase
       .from('form_submissions')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
     
     setUnreadForms(formsCount || 0);
   }, [user, isAdmin]);
