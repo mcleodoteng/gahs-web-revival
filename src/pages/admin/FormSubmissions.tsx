@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Download, Trash2, FileText, User, Mail, Phone, Calendar, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { TablePagination } from "@/components/admin/TablePagination";
 
 interface SubmissionFile {
   id: string;
@@ -72,6 +73,8 @@ const AdminFormSubmissions = () => {
   const [deleteTarget, setDeleteTarget] = useState<FormSubmission | null>(null);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [updatingStatusFor, setUpdatingStatusFor] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchSubmissions = async () => {
     setIsLoading(true);
@@ -193,16 +196,31 @@ const AdminFormSubmissions = () => {
     setDeleteTarget(null);
   };
 
-  const filteredSubmissions = submissions.filter((s) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
-      s.last_name.toLowerCase().includes(searchLower) ||
-      s.other_names.toLowerCase().includes(searchLower) ||
-      s.email.toLowerCase().includes(searchLower) ||
-      s.phone.includes(searchQuery);
-    const matchesTab = s.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
+  // Filter submissions based on search and tab
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((s) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = 
+        s.last_name.toLowerCase().includes(searchLower) ||
+        s.other_names.toLowerCase().includes(searchLower) ||
+        s.email.toLowerCase().includes(searchLower) ||
+        s.phone.includes(searchQuery);
+      const matchesTab = s.status === activeTab;
+      return matchesSearch && matchesTab;
+    });
+  }, [submissions, searchQuery, activeTab]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+  const paginatedSubmissions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredSubmissions.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredSubmissions, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab, itemsPerPage]);
 
   const pendingCount = submissions.filter(s => s.status === "pending").length;
   const completedCount = submissions.filter(s => s.status === "completed").length;
@@ -220,111 +238,123 @@ const AdminFormSubmissions = () => {
         <div className="text-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
         </div>
-      ) : filteredSubmissions.length === 0 ? (
+      ) : paginatedSubmissions.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           {searchQuery 
             ? "No submissions match your search." 
             : `No ${activeTab} submissions.`}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Forms</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSubmissions.map((submission) => (
-                <TableRow key={submission.id}>
-                  <TableCell>
-                    <div className="font-medium">
-                      {submission.last_name}, {submission.other_names}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {submission.email}
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        {submission.phone}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {submission.files?.map((file) => (
-                        <Badge key={file.id} variant="secondary" className="text-xs">
-                          {formTypeLabels[file.form_type] || file.form_type}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(submission.created_at), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {submission.status === "pending" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleStatusChange(submission.id, "completed")}
-                          disabled={updatingStatusFor === submission.id}
-                          className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        >
-                          {updatingStatusFor === submission.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4" />
-                          )}
-                          Complete
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleStatusChange(submission.id, "pending")}
-                          disabled={updatingStatusFor === submission.id}
-                          className="gap-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                        >
-                          {updatingStatusFor === submission.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Clock className="h-4 w-4" />
-                          )}
-                          Reopen
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setSelectedSubmission(submission)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteTarget(submission)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        <>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Forms</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {paginatedSubmissions.map((submission) => (
+                  <TableRow key={submission.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {submission.last_name}, {submission.other_names}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {submission.email}
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          {submission.phone}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {submission.files?.map((file) => (
+                          <Badge key={file.id} variant="secondary" className="text-xs">
+                            {formTypeLabels[file.form_type] || file.form_type}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(submission.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {submission.status === "pending" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(submission.id, "completed")}
+                            disabled={updatingStatusFor === submission.id}
+                            className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            {updatingStatusFor === submission.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4" />
+                            )}
+                            Complete
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(submission.id, "pending")}
+                            disabled={updatingStatusFor === submission.id}
+                            className="gap-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          >
+                            {updatingStatusFor === submission.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Clock className="h-4 w-4" />
+                            )}
+                            Reopen
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedSubmission(submission)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteTarget(submission)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredSubmissions.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </>
       )}
     </>
   );
