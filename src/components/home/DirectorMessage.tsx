@@ -7,7 +7,22 @@ import { usePageContent } from "@/hooks/useCMS";
 import directorImage from "@/assets/team/dr-james-antwi.jpg";
 import { useRef, useEffect } from "react";
 
-interface DirectorContentRaw {
+interface DirectorMessageItem {
+  id?: string;
+  director_name?: string;
+  name?: string;
+  director_title?: string;
+  title?: string;
+  short_message?: string;
+  shortMessage?: string;
+  tagline?: string;
+  image?: string;
+  isActive?: boolean;
+}
+
+interface DirectorMessagesContentRaw {
+  messages?: DirectorMessageItem[];
+  // Legacy single message format
   director_name?: string;
   name?: string;
   director_title?: string;
@@ -56,14 +71,25 @@ export const DirectorMessage = () => {
     }
   }, [mouseX, mouseY]);
   
-  const rawContent = getSection<DirectorContentRaw>("director_message", {});
+  const rawContent = getSection<DirectorMessagesContentRaw>("director_message", {});
+  
+  // Handle both multi-message and legacy single message format
+  let activeMessage: DirectorMessageItem | undefined;
+  
+  if (rawContent?.messages && Array.isArray(rawContent.messages) && rawContent.messages.length > 0) {
+    // Multi-message format: find the active one
+    activeMessage = rawContent.messages.find(m => m.isActive) || rawContent.messages[0];
+  } else {
+    // Legacy single message format
+    activeMessage = rawContent as DirectorMessageItem;
+  }
   
   // Normalize field names (CMS uses snake_case, component uses camelCase)
   const directorContent: DirectorContent = {
-    name: rawContent?.director_name || rawContent?.name || "Dr. James Antwi",
-    title: rawContent?.director_title || rawContent?.title || "Director, GAHS",
-    shortMessage: rawContent?.short_message || rawContent?.shortMessage || "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
-    tagline: rawContent?.tagline || "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
+    name: activeMessage?.director_name || activeMessage?.name || "Dr. James Antwi",
+    title: activeMessage?.director_title || activeMessage?.title || "Director, GAHS",
+    shortMessage: activeMessage?.short_message || activeMessage?.shortMessage || "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
+    tagline: activeMessage?.tagline || "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
   };
 
   return (

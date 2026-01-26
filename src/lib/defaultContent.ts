@@ -45,10 +45,24 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       section_key: "director_message",
       sort_order: 1,
       content: {
-        name: "Dr. James Antwi",
-        title: "Director, Ghana Adventist Health Services",
-        shortMessage: "At GAHS, we believe that true healthcare goes beyond treating illnesses—it encompasses the whole person: body, mind, and spirit. Our mission is rooted in the healing ministry of Christ, and we are committed to providing compassionate, quality care to all who seek our services.",
-        tagline: "Healing is our calling, service is our mission.",
+        messages: [
+          {
+            id: "1",
+            name: "Dr. James Antwi",
+            title: "Director, Ghana Adventist Health Services",
+            shortMessage: "At GAHS, we believe that true healthcare goes beyond treating illnesses—it encompasses the whole person: body, mind, and spirit. Our mission is rooted in the healing ministry of Christ, and we are committed to providing compassionate, quality care to all who seek our services.",
+            tagline: "Healing is our calling, service is our mission.",
+            isActive: true,
+          },
+          {
+            id: "2",
+            name: "Dr. James Antwi",
+            title: "Director, Ghana Adventist Health Services",
+            shortMessage: "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
+            tagline: "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above.",
+            isActive: false,
+          },
+        ],
       },
     },
     {
@@ -192,19 +206,53 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       },
     },
     {
-      section_key: "director",
+      section_key: "director_messages",
       sort_order: 1,
       content: {
-        name: "Dr. James Antwi",
-        title: "Director, Ghana Adventist Health Services",
-        image: "",
-        message: "It is my privilege to lead Ghana Adventist Health Services as we continue our mission of providing compassionate, Christ-centered healthcare to the people of Ghana. Our team of dedicated healthcare professionals works tirelessly to ensure that every patient receives quality care that addresses their physical, mental, and spiritual needs.\n\nWe remain committed to expanding our reach, improving our facilities, and training the next generation of healthcare workers who will carry forward our legacy of service.",
+        messages: [
+          {
+            id: "1",
+            name: "Dr. James Antwi",
+            title: "Director, Ghana Adventist Health Services",
+            image: "",
+            message: "It is my privilege to lead Ghana Adventist Health Services as we continue our mission of providing compassionate, Christ-centered healthcare to the people of Ghana. Our team of dedicated healthcare professionals works tirelessly to ensure that every patient receives quality care that addresses their physical, mental, and spiritual needs.\n\nWe remain committed to expanding our reach, improving our facilities, and training the next generation of healthcare workers who will carry forward our legacy of service.",
+            email: "director@gahs.org.gh",
+            phone: "+233322392578",
+            isActive: true,
+          },
+          {
+            id: "2",
+            name: "Dr. James Antwi",
+            title: "Director, Ghana Adventist Health Services",
+            image: "",
+            message: "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.\n\nThe Ghana Adventist Health Services is privileged to serve the Ghanaian people and we don't only count this as an opportunity but blessing from above.",
+            email: "director@gahs.org.gh",
+            phone: "+233322392578",
+            isActive: false,
+          },
+        ],
+      },
+    },
+    {
+      section_key: "executive_committee",
+      sort_order: 2,
+      content: {
+        sectionTitle: "Executive Committee",
+        sectionSubtitle: "The governing body providing strategic oversight and guidance for GAHS",
+        members: [
+          { name: "Elder Samuel Osei", title: "Chairperson", organization: "SDA Church Ghana", image: "" },
+          { name: "Pastor David Mensah", title: "Secretary", organization: "West Africa Division", image: "" },
+          { name: "Dr. Grace Adu", title: "Member", organization: "Health Advisory Board", image: "" },
+          { name: "Elder Francis Asante", title: "Member", organization: "MGUC Health Department", image: "" },
+        ],
       },
     },
     {
       section_key: "team_members",
-      sort_order: 2,
+      sort_order: 3,
       content: {
+        sectionTitle: "Meet the GAHS Secretariat Team",
+        sectionSubtitle: "Dedicated professionals working together to advance healthcare across Ghana",
         members: [
           { name: "Hannah Asante", title: "Assistant Director", department: "Administration", image: "" },
           { name: "Edmond Adjei Boadu", title: "Health Director", department: "MGUC", image: "" },
@@ -215,7 +263,7 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
     },
     {
       section_key: "quote",
-      sort_order: 3,
+      sort_order: 4,
       content: {
         text: "True healing comes when we treat the whole person—body, mind, and spirit—with compassion and excellence.",
         author: "GAHS Leadership",
@@ -272,10 +320,14 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       sort_order: 1,
       content: {
         images: [
-          { src: "", title: "Community Health Outreach", category: "Outreach", description: "Free health screenings for rural communities." },
-          { src: "", title: "Hospital Facilities", category: "Facilities", description: "Modern medical equipment and patient rooms." },
-          { src: "", title: "Training Programs", category: "Education", description: "Healthcare professional training sessions." },
-          { src: "", title: "Staff Meeting", category: "Events", description: "Annual GAHS staff conference and planning." },
+          { id: "1", src: "", title: "Community Health Outreach", category: "Events", description: "Free health screenings for rural communities." },
+          { id: "2", src: "", title: "Hospital Facilities", category: "Facilities", description: "Modern medical equipment and patient rooms." },
+          { id: "3", src: "", title: "Training Programs", category: "Training", description: "Healthcare professional training sessions." },
+          { id: "4", src: "", title: "Staff Meeting", category: "Events", description: "Annual GAHS staff conference and planning." },
+          { id: "5", src: "", title: "Nursing College Campus", category: "Training Institutions", description: "State-of-the-art nursing training facilities." },
+          { id: "6", src: "", title: "Medical Stores Facility", category: "Central Medical Stores", description: "Central medical supplies distribution center." },
+          { id: "7", src: "", title: "Healthcare Supplies", category: "Central Medical Stores", description: "Quality medical supplies and equipment." },
+          { id: "8", src: "", title: "Student Graduation", category: "Training Institutions", description: "Annual nursing college graduation ceremony." },
         ],
       },
     },
@@ -377,8 +429,9 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       sort_order: 1,
       content: {
         institutions: [
-          { name: "S.D.A. Hospital, Kwadaso", location: "Kwadaso", region: "Ashanti", union: "MGUC", type: "Hospital", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@sdahospital-kwadaso.org", services: "General Medicine, Surgery, Maternity, Emergency Care" },
-          { name: "Adventist Hospital, Sunyani", location: "Sunyani", region: "Bono", union: "MGUC", type: "Hospital", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@adventisthospital-sunyani.org", services: "General Medicine, Pediatrics, Maternity" },
+          { name: "S.D.A. Hospital, Kwadaso", location: "Kwadaso", region: "Ashanti", union: "MGUC", type: "Hospital", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@sdahospital-kwadaso.org", services: "General Medicine, Surgery, Maternity, Emergency Care", website: "https://sdahospital-kwadaso.org" },
+          { name: "Adventist Hospital, Sunyani", location: "Sunyani", region: "Bono", union: "MGUC", type: "Hospital", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@adventisthospital-sunyani.org", services: "General Medicine, Pediatrics, Maternity", website: "" },
+          { name: "Akomaa Memorial Hospital", location: "Kortwia", region: "Ashanti", union: "MGUC", type: "Hospital", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "General Medicine, Surgery, Maternity", website: "https://akomaahospital.org" },
         ],
       },
     },
@@ -387,7 +440,8 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       sort_order: 2,
       content: {
         institutions: [
-          { name: "SDA Clinic, Obuasi", location: "Obuasi", region: "Ashanti", union: "MGUC", type: "Clinic", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Primary Care, Immunization, Maternal Health" },
+          { name: "SDA Clinic, Obuasi", location: "Obuasi", region: "Ashanti", union: "MGUC", type: "Clinic", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Primary Care, Immunization, Maternal Health", website: "" },
+          { name: "Mary Ekuba Memorial Adventist Clinic", location: "Akwidaa", region: "Western", union: "SGUC", type: "Clinic", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Primary Care, Community Health", website: "" },
         ],
       },
     },
@@ -396,7 +450,26 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       sort_order: 3,
       content: {
         institutions: [
-          { name: "S.D.A. Nursing and Midwifery Training College, Asamang", location: "Asamang", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Nursing Training, Midwifery Training" },
+          { name: "S.D.A. Nursing and Midwifery Training College, Asamang", location: "Asamang", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Nursing Training, Midwifery Training", website: "https://sdanursingcollege-asamang.edu.gh" },
+          { name: "S.D.A. College of Health, Barekese", location: "Barekese", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Health Science Training", website: "" },
+        ],
+      },
+    },
+    {
+      section_key: "specialized",
+      sort_order: 4,
+      content: {
+        institutions: [
+          { name: "Central Medical Stores (CMS)", location: "Kwadaso", region: "Ashanti", union: "ALL UNIONS", type: "Specialized", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "Medical Supplies, Equipment Distribution", website: "https://gahscms.org" },
+        ],
+      },
+    },
+    {
+      section_key: "polyclinics",
+      sort_order: 5,
+      content: {
+        institutions: [
+          { name: "S.D.A. Polyclinic, Nobewam", location: "Nobewam", region: "Ashanti", union: "MGUC", type: "Polyclinic", status: "ACTIVE", phone: "+233 XX XXX XXXX", services: "General Medicine, Diagnostics, Maternal Health", website: "" },
         ],
       },
     },
@@ -416,9 +489,27 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
       sort_order: 1,
       content: {
         resources: [
-          { title: "GAHS Annual Report 2024", description: "Comprehensive overview of GAHS activities, achievements, and financial reports.", category: "Annual Reports", date: "January 2024", fileSize: "2.5 MB", fileUrl: "" },
-          { title: "Nursing College Application Form", description: "Application form for admission into SDA Nursing Training Colleges.", category: "Application Forms", date: "2024", fileSize: "500 KB", fileUrl: "" },
-          { title: "Clinical Practice Guidelines", description: "Standard operating procedures for clinical practice in GAHS facilities.", category: "Guidelines", date: "2024", fileSize: "1.2 MB", fileUrl: "" },
+          // Annual Reports
+          { id: "1", title: "GAHS Annual Report 2024", description: "Comprehensive overview of GAHS activities, achievements, and financial reports.", category: "Annual Reports", date: "January 2025", fileSize: "2.5 MB", fileUrl: "" },
+          { id: "2", title: "GAHS Annual Report 2023", description: "Review of healthcare services, institutional growth, and community impact in 2023.", category: "Annual Reports", date: "January 2024", fileSize: "2.3 MB", fileUrl: "" },
+          // Monthly Reports
+          { id: "3", title: "Monthly Health Report - December 2024", description: "Monthly summary of health services delivered across all GAHS facilities.", category: "Monthly Reports", date: "January 2025", fileSize: "1.8 MB", fileUrl: "" },
+          // Newsletters
+          { id: "4", title: "GAHS Newsletter Q4 2024", description: "Quarterly newsletter featuring updates, stories, and achievements from our network.", category: "Newsletters", date: "December 2024", fileSize: "3.5 MB", fileUrl: "" },
+          // Scholarly Articles
+          { id: "5", title: "Community Health Impact Study 2024", description: "Research study on the impact of GAHS community health programs in rural Ghana.", category: "Scholarly Articles", date: "November 2024", fileSize: "1.5 MB", fileUrl: "" },
+          { id: "6", title: "Maternal Health Outcomes in SDA Facilities", description: "A comparative analysis of maternal health outcomes across GAHS hospitals.", category: "Scholarly Articles", date: "October 2024", fileSize: "2.0 MB", fileUrl: "" },
+          // Application Forms
+          { id: "7", title: "Nursing College Application Form", description: "Application form for admission into SDA Nursing Training Colleges.", category: "Application Forms", date: "2024", fileSize: "500 KB", fileUrl: "" },
+          { id: "8", title: "Employment Application Form", description: "Standard application form for employment opportunities at GAHS institutions.", category: "Application Forms", date: "2024", fileSize: "450 KB", fileUrl: "" },
+          // Guidelines
+          { id: "9", title: "Clinical Practice Guidelines", description: "Standard operating procedures for clinical practice in GAHS facilities.", category: "Guidelines", date: "2024", fileSize: "1.2 MB", fileUrl: "" },
+          { id: "10", title: "Student Admission Guidelines", description: "Comprehensive guidelines for admission into GAHS training institutions.", category: "Guidelines", date: "2024", fileSize: "800 KB", fileUrl: "" },
+          // Training Materials
+          { id: "11", title: "Nursing Training Manual", description: "Comprehensive training manual for nursing students covering core competencies.", category: "Training Materials", date: "2024", fileSize: "4.5 MB", fileUrl: "" },
+          // Application for Ethical Clearance
+          { id: "12", title: "Ethical Clearance Application Form", description: "Application form for research ethical clearance at GAHS institutions.", category: "Application for Ethical Clearance", date: "2024", fileSize: "350 KB", fileUrl: "" },
+          { id: "13", title: "Ethical Research Guidelines", description: "Guidelines for conducting ethical research within GAHS facilities.", category: "Application for Ethical Clearance", date: "2024", fileSize: "600 KB", fileUrl: "" },
         ],
       },
     },

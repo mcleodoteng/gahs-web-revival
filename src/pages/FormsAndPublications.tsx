@@ -195,10 +195,10 @@ const defaultResources: Resource[] = [
 ];
 
 // Application Forms section categories
-const applicationFormCategories = ["All", "Application Forms", "Guidelines", "Training Materials", "Other"];
+const applicationFormCategories = ["All", "Application Forms", "Guidelines", "Training Materials", "Application for Ethical Clearance", "Other"];
 
 // Publications section categories
-const publicationCategories = ["All", "Annual Reports", "Monthly Reports", "Newsletters"];
+const publicationCategories = ["All", "Annual Reports", "Monthly Reports", "Newsletters", "Scholarly Articles"];
 
 const ResourcesPage = () => {
   const { isLoading, getSection } = usePageContent("forms-publications");
@@ -212,11 +212,11 @@ const ResourcesPage = () => {
 
   // Separate resources into Application Forms and Publications
   const applicationFormResources = resources.filter(resource => 
-    ["Application Forms", "Guidelines", "Training Materials", "Other"].includes(resource.category)
+    ["Application Forms", "Guidelines", "Training Materials", "Application for Ethical Clearance", "Other"].includes(resource.category)
   );
 
   const publicationResources = resources.filter(resource => 
-    ["Annual Reports", "Monthly Reports", "Newsletters"].includes(resource.category)
+    ["Annual Reports", "Monthly Reports", "Newsletters", "Scholarly Articles"].includes(resource.category)
   );
 
   // Filter application form resources
