@@ -36,7 +36,7 @@ const defaultGalleryImages: GalleryImage[] = [
   { id: "12", src: "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=800&auto=format&q=75", title: "Staff Training", category: "Training", description: "Continuous professional development" },
 ];
 
-const categories = ["All", "Hospitals", "Facilities", "Events", "Training", "Services"];
+const categories = ["All", "Hospitals", "Facilities", "Events", "Training", "Services", "Training Institutions", "Central Medical Stores"];
 
 const GalleryPage = () => {
   const { isLoading, getSection } = usePageContent("gallery");

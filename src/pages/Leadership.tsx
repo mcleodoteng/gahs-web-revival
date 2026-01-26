@@ -16,13 +16,19 @@ import julietImage from "@/assets/team/juliet-atobrah-antwi.jpg";
 import janetOwusuaaImage from "@/assets/team/janet-owusuaa.jpg";
 import edmondImage from "@/assets/team/edmond-adjei-boadu.jpg";
 
-interface DirectorContent {
+interface DirectorMessage {
+  id?: string;
   name: string;
   title: string;
   image: string;
   message: string;
   email: string;
   phone: string;
+  isActive?: boolean;
+}
+
+interface DirectorMessagesContent {
+  messages: DirectorMessage[];
 }
 
 interface TeamMember {
@@ -30,6 +36,19 @@ interface TeamMember {
   title: string;
   department: string;
   image: string;
+}
+
+interface ExecutiveCommitteeMember {
+  name: string;
+  title: string;
+  organization?: string;
+  image: string;
+}
+
+interface ExecutiveCommitteeContent {
+  sectionTitle: string;
+  sectionSubtitle: string;
+  members: ExecutiveCommitteeMember[];
 }
 
 interface TeamContent {
@@ -48,16 +67,27 @@ interface QuoteContent {
   author: string;
 }
 
-const defaultDirector: DirectorContent = {
-  name: "Dr. James Antwi",
-  title: "Director",
-  image: directorImageDefault,
-  message: `We are excited to share this edition of our 2024 Annual Report: The GAHS Annual Report: Are we on the cusp of something big? Our performance last year may not have matched every stakeholder's hopes or expectations, even though all major quality indicators showed gains even within the face of challenges. Yet, we believe strongly that lessons in 2024 and activities earmarked for 2025 can help us say, yes, indeed! we are on the cusp for something big. The resilience of our facilities, along with major improving conditions and expansions, point to a positive outlook for GAHS in 2025, especially as the year progresses.
+const defaultDirectorMessages: DirectorMessage[] = [
+  {
+    id: "1",
+    name: "Dr. James Antwi",
+    title: "Director",
+    image: directorImageDefault,
+    message: `We are excited to share this edition of our 2024 Annual Report: The GAHS Annual Report: Are we on the cusp of something big? Our performance last year may not have matched every stakeholder's hopes or expectations, even though all major quality indicators showed gains even within the face of challenges. Yet, we believe strongly that lessons in 2024 and activities earmarked for 2025 can help us say, yes, indeed! we are on the cusp for something big. The resilience of our facilities, along with major improving conditions and expansions, point to a positive outlook for GAHS in 2025, especially as the year progresses.
 
 The Ghana Adventist Health Services is privileged to serve the Ghanaian people and we don't only count this as an opportunity but blessing from above. During the year under review, we pursued major innovations in resource mobilisations including the famous 'nobewa' concept and other financial transactions that can help improve or transform our facilities. We embarked on major projects, institutional reforms, establishment of new facilities, missionary activities and evangelism to win souls for Christ.`,
-  email: "director@gahs.org.gh",
-  phone: "+233322392578"
-};
+    email: "director@gahs.org.gh",
+    phone: "+233322392578",
+    isActive: true,
+  },
+];
+
+const defaultExecutiveMembers: ExecutiveCommitteeMember[] = [
+  { name: "Elder Samuel Osei", title: "Chairperson", organization: "SDA Church Ghana", image: "" },
+  { name: "Pastor David Mensah", title: "Secretary", organization: "West Africa Division", image: "" },
+  { name: "Dr. Grace Adu", title: "Member", organization: "Health Advisory Board", image: "" },
+  { name: "Elder Francis Asante", title: "Member", organization: "MGUC Health Department", image: "" },
+];
 
 const defaultTeamMembers: TeamMember[] = [
   { name: "Mrs. Annabella Agyeman Dankwah", title: "Deputy Director", department: "Administration", image: annabellaImage },
@@ -77,7 +107,20 @@ const Leadership = () => {
     subtitle: "Meet the dedicated professionals leading GAHS towards excellence in healthcare delivery"
   })!;
 
-  const directorContent = getSection<DirectorContent>("director", defaultDirector)!;
+  // Fetch director messages and find the active one
+  const directorMessagesContent = getSection<DirectorMessagesContent>("director_messages", {
+    messages: defaultDirectorMessages
+  })!;
+  
+  const directorMessages = directorMessagesContent.messages || defaultDirectorMessages;
+  const activeDirectorMessage = directorMessages.find(m => m.isActive) || directorMessages[0] || defaultDirectorMessages[0];
+
+  const executiveContent = getSection<ExecutiveCommitteeContent>("executive_committee", {
+    sectionTitle: "Executive Committee",
+    sectionSubtitle: "The governing body providing strategic oversight and guidance for GAHS",
+    members: defaultExecutiveMembers
+  })!;
+
   const teamContent = getSection<TeamContent>("team_members", {
     sectionTitle: "Meet the GAHS Secretariat Team",
     sectionSubtitle: "Dedicated professionals working together to advance healthcare across Ghana",
@@ -91,8 +134,8 @@ const Leadership = () => {
 
   // Use default images as fallback if CMS image is empty or invalid
   const getDirectorImage = () => {
-    if (directorContent.image && directorContent.image.startsWith("http")) {
-      return directorContent.image;
+    if (activeDirectorMessage.image && activeDirectorMessage.image.startsWith("http")) {
+      return activeDirectorMessage.image;
     }
     return directorImageDefault;
   };
@@ -102,6 +145,13 @@ const Leadership = () => {
       return member.image;
     }
     return defaultTeamMembers[index]?.image || "";
+  };
+
+  const getExecutiveMemberImage = (member: ExecutiveCommitteeMember) => {
+    if (member.image && member.image.startsWith("http")) {
+      return member.image;
+    }
+    return "";
   };
 
   if (isLoading) {
@@ -148,7 +198,7 @@ const Leadership = () => {
                 <div className="aspect-[4/5] overflow-hidden">
                   <OptimizedImage
                     src={getDirectorImage()}
-                    alt={directorContent.name}
+                    alt={activeDirectorMessage.name}
                     className="w-full h-full"
                     containerClassName="w-full h-full"
                     objectPosition="top"
@@ -156,17 +206,17 @@ const Leadership = () => {
                   />
                 </div>
                 <CardContent className="p-6 text-center bg-background">
-                  <h3 className="text-2xl font-bold text-foreground">{directorContent.name}</h3>
-                  <p className="text-lg text-primary font-semibold mt-1">{directorContent.title}</p>
+                  <h3 className="text-2xl font-bold text-foreground">{activeDirectorMessage.name}</h3>
+                  <p className="text-lg text-primary font-semibold mt-1">{activeDirectorMessage.title}</p>
                   <p className="text-muted-foreground mt-2">Ghana Adventist Health Services</p>
                 </CardContent>
                 <div className="p-4 bg-primary text-primary-foreground">
                   <div className="flex items-center justify-center gap-6">
-                    <a href={`mailto:${directorContent.email || "director@gahs.org.gh"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <a href={`mailto:${activeDirectorMessage.email || "director@gahs.org.gh"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <Mail className="h-5 w-5" />
                       <span className="text-sm">Email</span>
                     </a>
-                    <a href={`tel:${directorContent.phone || "+233322392578"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <a href={`tel:${activeDirectorMessage.phone || "+233322392578"}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <Phone className="h-5 w-5" />
                       <span className="text-sm">Call</span>
                     </a>
@@ -181,15 +231,15 @@ const Leadership = () => {
                 <CardContent className="p-8 md:p-10">
                   <Quote className="h-12 w-12 text-primary/30 mb-6" />
                   <div className="prose prose-lg max-w-none">
-                    {directorContent.message.split('\n\n').map((paragraph, index) => (
+                    {activeDirectorMessage.message.split('\n\n').map((paragraph, index) => (
                       <p key={index} className="text-muted-foreground leading-relaxed mb-6 last:mb-0">
                         {paragraph}
                       </p>
                     ))}
                   </div>
                   <div className="mt-8 pt-6 border-t border-border">
-                    <p className="text-foreground font-semibold">{directorContent.name}</p>
-                    <p className="text-primary">{directorContent.title}, GAHS</p>
+                    <p className="text-foreground font-semibold">{activeDirectorMessage.name}</p>
+                    <p className="text-primary">{activeDirectorMessage.title}, GAHS</p>
                   </div>
                 </CardContent>
               </Card>
@@ -235,6 +285,58 @@ const Leadership = () => {
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Executive Committee Section */}
+      <section className="py-16 md:py-24 bg-background">
+        <div className="container">
+          <div className="text-center mb-12">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">
+              Executive Committee
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
+              {executiveContent.sectionTitle}
+            </h2>
+            <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
+              {executiveContent.sectionSubtitle}
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {(executiveContent.members || defaultExecutiveMembers).map((member, index) => (
+              <Card key={index} className="border-0 shadow-card hover:shadow-elegant transition-shadow duration-300 group overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Photo */}
+                  <div className="aspect-square overflow-hidden bg-muted flex items-center justify-center">
+                    {getExecutiveMemberImage(member) ? (
+                      <OptimizedImage
+                        src={getExecutiveMemberImage(member)}
+                        alt={member.name}
+                        width={400}
+                        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                        containerClassName="w-full h-full"
+                        objectPosition="top"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-12 w-12 text-primary/40" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Info */}
+                  <div className="p-5 text-center">
+                    <h3 className="font-bold text-foreground text-lg leading-tight">{member.name}</h3>
+                    <p className="text-primary font-medium mt-1">{member.title}</p>
+                    {member.organization && (
+                      <p className="text-muted-foreground text-sm mt-1">{member.organization}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

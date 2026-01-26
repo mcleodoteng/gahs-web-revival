@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X, Phone, Mail, Eye, Building, Users } from "lucide-react";
+import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X, Phone, Mail, Eye, Building, Users, Globe } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePageContent } from "@/hooks/useCMS";
 import {
@@ -30,6 +30,7 @@ interface Institution {
   email?: string;
   services?: string[] | string;
   image?: string;
+  website?: string;
 }
 
 // Helper to parse services from CMS (can be string or array)
@@ -579,6 +580,17 @@ const InstitutionsPage = () => {
                       {selectedInstitution.email}
                     </a>
                   )}
+                  {selectedInstitution.website && (
+                    <a 
+                      href={selectedInstitution.website.startsWith("http") ? selectedInstitution.website : `https://${selectedInstitution.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors"
+                    >
+                      <Globe className="h-3.5 w-3.5" />
+                      {selectedInstitution.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -595,7 +607,7 @@ const InstitutionsPage = () => {
                       <ul className="grid grid-cols-2 gap-2">
                         {servicesList.map((service, idx) => (
                           <li key={idx} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            <CheckCircle2 className="h-3 w-3 text-primary" />
                             {service}
                           </li>
                         ))}
