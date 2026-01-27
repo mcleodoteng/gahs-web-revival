@@ -473,6 +473,17 @@ export const defaultPageContent: Record<string, DefaultSection[]> = {
         ],
       },
     },
+    {
+      section_key: "conferences",
+      sort_order: 6,
+      content: {
+        institutions: [
+          { name: "Mid-Ghana Union Conference (MGUC)", location: "Accra", region: "Greater Accra", union: "MGUC", type: "Conference", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@mguc.org", services: "Administrative Coordination, Health Oversight", website: "https://mguc.org" },
+          { name: "South Ghana Union Conference (SGUC)", location: "Cape Coast", region: "Central", union: "SGUC", type: "Conference", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@sguc.org", services: "Administrative Coordination, Health Oversight", website: "https://sguc.org" },
+          { name: "Mid-Central Ghana Union Mission (MCGUM)", location: "Kumasi", region: "Ashanti", union: "MCGUM", type: "Conference", status: "ACTIVE", phone: "+233 XX XXX XXXX", email: "info@mcgum.org", services: "Administrative Coordination, Health Oversight", website: "" },
+        ],
+      },
+    },
   ],
   "forms-publications": [
     {
