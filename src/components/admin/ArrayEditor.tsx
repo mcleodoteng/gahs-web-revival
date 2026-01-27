@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface ArrayFieldConfig {
   key: string;
   label: string;
-  type: "text" | "textarea" | "richtext" | "image" | "file" | "number" | "select";
+  type: "text" | "textarea" | "richtext" | "image" | "file" | "number" | "select" | "checkbox";
   placeholder?: string;
   options?: { label: string; value: string }[];
 }
@@ -241,7 +242,13 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
   const addItem = () => {
     const newItem: Record<string, unknown> = { id: String(Date.now()) };
     fields.forEach((field) => {
-      newItem[field.key] = field.type === "number" ? 0 : "";
+      if (field.type === "number") {
+        newItem[field.key] = 0;
+      } else if (field.type === "checkbox") {
+        newItem[field.key] = false;
+      } else {
+        newItem[field.key] = "";
+      }
     });
     const newItems = [...items, newItem];
     onChange(newItems);
@@ -439,6 +446,20 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                                 </option>
                               ))}
                             </select>
+                          ) : field.type === "checkbox" ? (
+                            <div className="flex items-center gap-2 py-1">
+                              <Checkbox
+                                id={`checkbox-${index}-${field.key}`}
+                                checked={Boolean(fieldValue)}
+                                onCheckedChange={(checked) => updateItem(index, field.key, checked)}
+                              />
+                              <Label 
+                                htmlFor={`checkbox-${index}-${field.key}`}
+                                className="text-sm cursor-pointer"
+                              >
+                                {fieldValue ? "Yes (Active)" : "No (Inactive)"}
+                              </Label>
+                            </div>
                           ) : (
                             <Input
                               value={String(fieldValue || "")}

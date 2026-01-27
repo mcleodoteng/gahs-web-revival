@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHero } from "@/components/shared/PageHero";
-import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X, Phone, Mail, Eye, Building, Users, Globe } from "lucide-react";
+import { Building2, Stethoscope, GraduationCap, Pill, MapPin, CheckCircle2, Clock, ChevronUp, ChevronDown, ChevronsUpDown, Filter, X, Phone, Mail, Eye, Building, Users, Globe, Briefcase } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePageContent } from "@/hooks/useCMS";
 import {
@@ -86,21 +86,24 @@ const InstitutionsPage = () => {
   const polyclinicsContent = sections.find(s => s.section_key === "polyclinics")?.content as { institutions?: Institution[] } | undefined;
   const specializedContent = sections.find(s => s.section_key === "specialized")?.content as { institutions?: Institution[] } | undefined;
   const trainingContent = sections.find(s => s.section_key === "training")?.content as { institutions?: Institution[] } | undefined;
+  const conferencesContent = sections.find(s => s.section_key === "conferences")?.content as { institutions?: Institution[] } | undefined;
 
   const hospitals = hospitalsContent?.institutions?.length ? hospitalsContent.institutions : defaultHospitals;
   const clinics = clinicsContent?.institutions?.length ? clinicsContent.institutions : defaultClinics;
   const polyclinics = polyclinicsContent?.institutions?.length ? polyclinicsContent.institutions : defaultPolyclinics;
   const specialized = specializedContent?.institutions?.length ? specializedContent.institutions : defaultSpecialized;
   const training = trainingContent?.institutions?.length ? trainingContent.institutions : defaultTraining;
+  const conferences = conferencesContent?.institutions?.length ? conferencesContent.institutions : [];
 
   const categories = useMemo(() => [
-    { id: "all", name: "All Institutions", icon: Building2, count: hospitals.length + clinics.length + polyclinics.length + specialized.length + training.length },
+    { id: "all", name: "All Institutions", icon: Building2, count: hospitals.length + clinics.length + polyclinics.length + specialized.length + training.length + conferences.length },
     { id: "hospitals", name: "Hospitals", icon: Building2, count: hospitals.length },
     { id: "clinics", name: "Clinics", icon: Stethoscope, count: clinics.length },
     { id: "polyclinics", name: "Polyclinics", icon: Stethoscope, count: polyclinics.length },
     { id: "specialized", name: "Specialized", icon: Pill, count: specialized.length },
     { id: "training", name: "Training", icon: GraduationCap, count: training.length },
-  ], [hospitals, clinics, polyclinics, specialized, training]);
+    { id: "conferences", name: "Conferences", icon: Briefcase, count: conferences.length },
+  ], [hospitals, clinics, polyclinics, specialized, training, conferences]);
 
   const getInstitutions = () => {
     let institutions: Institution[] = [];
@@ -121,6 +124,9 @@ const InstitutionsPage = () => {
       case "training":
         institutions = training;
         break;
+      case "conferences":
+        institutions = conferences;
+        break;
       default:
         institutions = [
           ...hospitals,
@@ -128,6 +134,7 @@ const InstitutionsPage = () => {
           ...polyclinics,
           ...specialized,
           ...training,
+          ...conferences,
         ];
     }
 

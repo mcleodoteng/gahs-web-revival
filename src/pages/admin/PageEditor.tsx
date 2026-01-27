@@ -98,6 +98,31 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
     { key: "name", label: "Name", type: "text", placeholder: "Dr. Jane Smith" },
     { key: "title", label: "Title/Role", type: "text", placeholder: "Chief Medical Officer" },
     { key: "department", label: "Department", type: "text", placeholder: "Medical Department" },
+    { key: "organization", label: "Organization", type: "text", placeholder: "Organization name" },
+    { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
+  ],
+  director_messages: [
+    { key: "id", label: "ID", type: "text", placeholder: "1" },
+    { key: "name", label: "Director Name", type: "text", placeholder: "Dr. James Antwi" },
+    { key: "title", label: "Director Title", type: "text", placeholder: "Director, GAHS" },
+    { key: "shortMessage", label: "Short Message", type: "textarea", placeholder: "Brief message for homepage..." },
+    { key: "tagline", label: "Tagline", type: "text", placeholder: "Closing tagline" },
+    { key: "isActive", label: "Active (show this message)", type: "checkbox" },
+  ],
+  director_messages_full: [
+    { key: "id", label: "ID", type: "text", placeholder: "1" },
+    { key: "name", label: "Director Name", type: "text", placeholder: "Dr. James Antwi" },
+    { key: "title", label: "Director Title", type: "text", placeholder: "Director, GAHS" },
+    { key: "image", label: "Director Photo", type: "image", placeholder: "Photo URL" },
+    { key: "message", label: "Full Message", type: "textarea", placeholder: "Full director message..." },
+    { key: "email", label: "Email", type: "text", placeholder: "director@gahs.org.gh" },
+    { key: "phone", label: "Phone", type: "text", placeholder: "+233 XX XXX XXXX" },
+    { key: "isActive", label: "Active (show this message)", type: "checkbox" },
+  ],
+  executive_committee: [
+    { key: "name", label: "Name", type: "text", placeholder: "Elder Samuel Osei" },
+    { key: "title", label: "Title/Role", type: "text", placeholder: "Chairperson" },
+    { key: "organization", label: "Organization", type: "text", placeholder: "SDA Church Ghana" },
     { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
   ],
   services: [
@@ -144,6 +169,7 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
       { label: "Polyclinic", value: "Polyclinic" },
       { label: "Specialized", value: "Specialized" },
       { label: "Training", value: "Training" },
+      { label: "Conference", value: "Conference" },
     ]},
     { key: "status", label: "Status", type: "select", options: [
       { label: "Active", value: "ACTIVE" },
@@ -151,6 +177,7 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
     ]},
     { key: "phone", label: "Phone Number", type: "text", placeholder: "+233 XX XXX XXXX" },
     { key: "email", label: "Email Address", type: "text", placeholder: "info@hospital.org.gh" },
+    { key: "website", label: "Website URL", type: "text", placeholder: "https://www.hospital.org.gh" },
     { key: "image", label: "Facility Image", type: "image", placeholder: "Upload facility image" },
     { key: "services", label: "Services (comma-separated)", type: "textarea", placeholder: "General Medicine, Surgery, Maternity, Emergency Care" },
   ],
@@ -182,10 +209,7 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Stats", key: "stats", type: "array", arrayType: "stats" },
       ],
       director_message: [
-        { label: "Name", key: "name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Title", key: "title", type: "text", placeholder: "Director, GAHS" },
-        { label: "Short Message", key: "shortMessage", type: "textarea", placeholder: "Brief message for homepage" },
-        { label: "Tagline", key: "tagline", type: "text", placeholder: "Closing tagline" },
+        { label: "Director Messages", key: "messages", type: "array", arrayType: "director_messages" },
       ],
       services_preview: [
         { label: "Title", key: "title", type: "text", placeholder: "Our Services" },
@@ -242,11 +266,8 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Title", key: "title", type: "text", placeholder: "Leadership Team" },
         { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Meet our dedicated team" },
       ],
-      director: [
-        { label: "Name", key: "name", type: "text", placeholder: "Dr. James Antwi" },
-        { label: "Title", key: "title", type: "text", placeholder: "Director" },
-        { label: "Image", key: "image", type: "image", placeholder: "Director photo URL" },
-        { label: "Message", key: "message", type: "textarea", placeholder: "Full message..." },
+      director_messages: [
+        { label: "Director Messages", key: "messages", type: "array", arrayType: "director_messages_full" },
       ],
       team_members: [
         { label: "Team Members", key: "members", type: "array", arrayType: "members" },
@@ -384,6 +405,9 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
       training: [
         { label: "Training Institutions", key: "institutions", type: "array", arrayType: "institutions" },
+      ],
+      conferences: [
+        { label: "Conferences", key: "institutions", type: "array", arrayType: "institutions" },
       ],
     },
   },
