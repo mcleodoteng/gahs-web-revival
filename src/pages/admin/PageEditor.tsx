@@ -269,7 +269,14 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       director_messages: [
         { label: "Director Messages", key: "messages", type: "array", arrayType: "director_messages_full" },
       ],
+      executive_committee: [
+        { label: "Section Title", key: "sectionTitle", type: "text", placeholder: "Executive Committee" },
+        { label: "Section Subtitle", key: "sectionSubtitle", type: "textarea", placeholder: "Description of the committee" },
+        { label: "Committee Members", key: "members", type: "array", arrayType: "executive_committee" },
+      ],
       team_members: [
+        { label: "Section Title", key: "sectionTitle", type: "text", placeholder: "Meet the GAHS Team" },
+        { label: "Section Subtitle", key: "sectionSubtitle", type: "textarea", placeholder: "Team description" },
         { label: "Team Members", key: "members", type: "array", arrayType: "members" },
       ],
       quote: [
@@ -534,6 +541,7 @@ const PageEditor = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState<{ type: "page" | "section"; sectionKey?: string } | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [hideTarget, setHideTarget] = useState<PageContent | null>(null);
 
   const config = slug ? pageConfig[slug] : null;
   const pageContent = content.filter((c) => c.page_slug === slug);
@@ -595,8 +603,6 @@ const PageEditor = () => {
     setEditingSection(null);
     setEditFormData({});
   };
-
-  const [hideTarget, setHideTarget] = useState<PageContent | null>(null);
 
   const handleToggleActive = async () => {
     if (!hideTarget) return;
