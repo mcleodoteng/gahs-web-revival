@@ -66,9 +66,19 @@ const defaultTraining: Institution[] = [
 type SortField = "name" | "location" | "region" | "union" | "type" | "status";
 type SortDirection = "asc" | "desc";
 
+// Get unique unions/conferences from institutions
+const getUniqueUnions = (institutions: Institution[]): string[] => {
+  const unions = new Set<string>();
+  institutions.forEach(inst => {
+    if (inst.union) unions.add(inst.union);
+  });
+  return Array.from(unions).sort();
+};
+
 const InstitutionsPage = () => {
   const { sections, isLoading } = usePageContent("institutions");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedUnion, setSelectedUnion] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("name");
@@ -94,6 +104,18 @@ const InstitutionsPage = () => {
   const specialized = specializedContent?.institutions?.length ? specializedContent.institutions : defaultSpecialized;
   const training = trainingContent?.institutions?.length ? trainingContent.institutions : defaultTraining;
   const conferences = conferencesContent?.institutions?.length ? conferencesContent.institutions : [];
+
+  // Combine all institutions for union filtering
+  const allInstitutionsList = useMemo(() => [
+    ...hospitals,
+    ...clinics,
+    ...polyclinics,
+    ...specialized,
+    ...training,
+    ...conferences,
+  ], [hospitals, clinics, polyclinics, specialized, training, conferences]);
+
+  const uniqueUnions = useMemo(() => getUniqueUnions(allInstitutionsList), [allInstitutionsList]);
 
   const categories = useMemo(() => [
     { id: "all", name: "All Institutions", icon: Building2, count: hospitals.length + clinics.length + polyclinics.length + specialized.length + training.length + conferences.length },
@@ -136,6 +158,11 @@ const InstitutionsPage = () => {
           ...training,
           ...conferences,
         ];
+    }
+
+    // Filter by union/conference
+    if (selectedUnion !== "all") {
+      institutions = institutions.filter(i => i.union === selectedUnion);
     }
 
     if (searchQuery) {
@@ -236,7 +263,7 @@ const InstitutionsPage = () => {
                     <X className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {categories.map((category) => (
                     <button
                       key={category.id}
@@ -253,6 +280,24 @@ const InstitutionsPage = () => {
                       <span className="opacity-70">({category.count})</span>
                     </button>
                   ))}
+                </div>
+                
+                {/* Conference/Union Filter for Mobile */}
+                <div className="pt-3 border-t border-border">
+                  <span className="text-sm font-medium text-foreground block mb-2">Filter by Conference</span>
+                  <select
+                    value={selectedUnion}
+                    onChange={(e) => {
+                      setSelectedUnion(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  >
+                    <option value="all">All Conferences</option>
+                    {uniqueUnions.map((union) => (
+                      <option key={union} value={union}>{union}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             )}
@@ -277,8 +322,23 @@ const InstitutionsPage = () => {
               ))}
             </div>
 
-            {/* Search */}
-            <div className="w-auto">
+            <div className="flex items-center gap-3">
+              {/* Conference/Union Filter */}
+              <select
+                value={selectedUnion}
+                onChange={(e) => {
+                  setSelectedUnion(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+              >
+                <option value="all">All Conferences</option>
+                {uniqueUnions.map((union) => (
+                  <option key={union} value={union}>{union}</option>
+                ))}
+              </select>
+
+              {/* Search */}
               <input
                 type="text"
                 placeholder="Search by name, location, or region..."
@@ -581,13 +641,18 @@ const InstitutionsPage = () => {
                       Contact information not available
                     </p>
                   )}
-                  {selectedInstitution.email && (
+                  {selectedInstitution.email ? (
                     <a href={`mailto:${selectedInstitution.email}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
                       <Mail className="h-3.5 w-3.5" />
                       {selectedInstitution.email}
                     </a>
+                  ) : (
+                    <p className="flex items-center gap-2 text-muted-foreground/60">
+                      <Mail className="h-3.5 w-3.5" />
+                      Email not available
+                    </p>
                   )}
-                  {selectedInstitution.website && (
+                  {selectedInstitution.website ? (
                     <a 
                       href={selectedInstitution.website.startsWith("http") ? selectedInstitution.website : `https://${selectedInstitution.website}`} 
                       target="_blank" 
@@ -597,6 +662,11 @@ const InstitutionsPage = () => {
                       <Globe className="h-3.5 w-3.5" />
                       {selectedInstitution.website.replace(/^https?:\/\//, '')}
                     </a>
+                  ) : (
+                    <p className="flex items-center gap-2 text-muted-foreground/60">
+                      <Globe className="h-3.5 w-3.5" />
+                      Website not available
+                    </p>
                   )}
                 </div>
               </div>
