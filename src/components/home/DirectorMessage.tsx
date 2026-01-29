@@ -7,29 +7,19 @@ import { usePageContent } from "@/hooks/useCMS";
 import directorImage from "@/assets/team/dr-james-antwi.jpg";
 import { useRef, useEffect } from "react";
 
-interface DirectorMessageItem {
+interface DirectorMessageFull {
   id?: string;
-  director_name?: string;
-  name?: string;
-  director_title?: string;
-  title?: string;
-  short_message?: string;
-  shortMessage?: string;
-  tagline?: string;
+  name: string;
+  title: string;
   image?: string;
+  message: string;
+  email?: string;
+  phone?: string;
   isActive?: boolean;
 }
 
-interface DirectorMessagesContentRaw {
-  messages?: DirectorMessageItem[];
-  // Legacy single message format
-  director_name?: string;
-  name?: string;
-  director_title?: string;
-  title?: string;
-  short_message?: string;
-  shortMessage?: string;
-  tagline?: string;
+interface DirectorMessagesContent {
+  messages?: DirectorMessageFull[];
 }
 
 interface DirectorContent {
@@ -39,8 +29,51 @@ interface DirectorContent {
   tagline: string;
 }
 
+// Extract first N lines from a message (approximately 6 lines / ~500 chars)
+const extractShortMessage = (fullMessage: string, maxLines: number = 6): string => {
+  if (!fullMessage) return "";
+  
+  // Split by paragraphs first
+  const paragraphs = fullMessage.split('\n\n').filter(p => p.trim());
+  
+  // Take first paragraph(s) up to approximately maxLines worth of content
+  let result = "";
+  let lineCount = 0;
+  
+  for (const paragraph of paragraphs) {
+    // Estimate lines: roughly 80 chars per line
+    const paragraphLines = Math.ceil(paragraph.length / 80);
+    
+    if (lineCount + paragraphLines <= maxLines || result === "") {
+      result += (result ? "\n\n" : "") + paragraph;
+      lineCount += paragraphLines;
+    } else {
+      break;
+    }
+  }
+  
+  // If still too long, truncate to ~500 chars with ellipsis
+  if (result.length > 550) {
+    result = result.substring(0, 500).trim();
+    // Find last sentence end
+    const lastSentence = Math.max(
+      result.lastIndexOf('. '),
+      result.lastIndexOf('! '),
+      result.lastIndexOf('? ')
+    );
+    if (lastSentence > 300) {
+      result = result.substring(0, lastSentence + 1);
+    } else {
+      result = result + "...";
+    }
+  }
+  
+  return result;
+};
+
 export const DirectorMessage = () => {
-  const { getSection } = usePageContent("home");
+  // Fetch from leadership page to sync with the full director message
+  const { getSection } = usePageContent("leadership");
   const sectionRef = useRef<HTMLDivElement>(null);
   
   // Mouse position values for 3D effect
@@ -71,25 +104,17 @@ export const DirectorMessage = () => {
     }
   }, [mouseX, mouseY]);
   
-  const rawContent = getSection<DirectorMessagesContentRaw>("director_message", {});
+  // Get director messages from leadership page
+  const directorMessagesContent = getSection<DirectorMessagesContent>("director_messages", { messages: [] });
+  const messages = directorMessagesContent?.messages || [];
+  const activeMessage = messages.find(m => m.isActive) || messages[0];
   
-  // Handle both multi-message and legacy single message format
-  let activeMessage: DirectorMessageItem | undefined;
-  
-  if (rawContent?.messages && Array.isArray(rawContent.messages) && rawContent.messages.length > 0) {
-    // Multi-message format: find the active one
-    activeMessage = rawContent.messages.find(m => m.isActive) || rawContent.messages[0];
-  } else {
-    // Legacy single message format
-    activeMessage = rawContent as DirectorMessageItem;
-  }
-  
-  // Normalize field names (CMS uses snake_case, component uses camelCase)
+  // Build content from leadership page data
   const directorContent: DirectorContent = {
-    name: activeMessage?.director_name || activeMessage?.name || "Dr. James Antwi",
-    title: activeMessage?.director_title || activeMessage?.title || "Director, GAHS",
-    shortMessage: activeMessage?.short_message || activeMessage?.shortMessage || "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable.",
-    tagline: activeMessage?.tagline || "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
+    name: activeMessage?.name || "Dr. James Antwi",
+    title: activeMessage?.title || "Director, GAHS",
+    shortMessage: extractShortMessage(activeMessage?.message || "We are excited to share our 2024 Annual Report: Are we on the cusp of something big? Our performance last year showed gains in all major quality indicators. We believe strongly that lessons in 2024 and activities earmarked for 2025 will transform GAHS into something truly remarkable."),
+    tagline: "The Ghana Adventist Health Services is privileged to serve the Ghanaian people — a blessing from above."
   };
 
   return (
