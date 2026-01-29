@@ -32,6 +32,7 @@ interface ArrayEditorProps {
   onChange: (value: unknown[]) => void;
   fields: ArrayFieldConfig[];
   itemLabel?: string;
+  exclusiveCheckboxField?: string; // Field key for exclusive checkbox (only one can be active)
 }
 
 const ImageUploadInput = ({ 
@@ -223,11 +224,17 @@ const FileUploadInput = ({
   );
 };
 
-export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: ArrayEditorProps) => {
+export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item", exclusiveCheckboxField }: ArrayEditorProps) => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
   const items = Array.isArray(value) ? value : [];
+
+  // Check if any item has the exclusive checkbox checked
+  const hasActiveExclusiveItem = exclusiveCheckboxField 
+    ? items.some(item => (item as Record<string, unknown>)?.[exclusiveCheckboxField] === true)
+    : false;
+
 
   const toggleExpand = (index: number) => {
     const newExpanded = new Set(expandedItems);
@@ -275,6 +282,17 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
 
   const updateItem = (index: number, key: string, fieldValue: unknown) => {
     const newItems = [...items];
+    
+    // If this is the exclusive checkbox field and we're setting it to true
+    if (exclusiveCheckboxField && key === exclusiveCheckboxField && fieldValue === true) {
+      // Uncheck all other items first
+      newItems.forEach((item, i) => {
+        if (i !== index) {
+          newItems[i] = { ...(item as Record<string, unknown>), [exclusiveCheckboxField]: false };
+        }
+      });
+    }
+    
     newItems[index] = { ...(newItems[index] as Record<string, unknown>), [key]: fieldValue };
     onChange(newItems);
   };
@@ -447,19 +465,29 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item" }: Arr
                               ))}
                             </select>
                           ) : field.type === "checkbox" ? (
-                            <div className="flex items-center gap-2 py-1">
-                              <Checkbox
-                                id={`checkbox-${index}-${field.key}`}
-                                checked={Boolean(fieldValue)}
-                                onCheckedChange={(checked) => updateItem(index, field.key, checked)}
-                              />
-                              <Label 
-                                htmlFor={`checkbox-${index}-${field.key}`}
-                                className="text-sm cursor-pointer"
-                              >
-                                {fieldValue ? "Yes (Active)" : "No (Inactive)"}
-                              </Label>
-                            </div>
+                            (() => {
+                              const isExclusiveField = exclusiveCheckboxField === field.key;
+                              const isCurrentlyChecked = Boolean(fieldValue);
+                              // Disable if: this is exclusive field, another item is active, and this one is not active
+                              const isDisabled = isExclusiveField && hasActiveExclusiveItem && !isCurrentlyChecked;
+                              
+                              return (
+                                <div className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    id={`checkbox-${index}-${field.key}`}
+                                    checked={isCurrentlyChecked}
+                                    onCheckedChange={(checked) => updateItem(index, field.key, checked)}
+                                    disabled={isDisabled}
+                                  />
+                                  <Label 
+                                    htmlFor={`checkbox-${index}-${field.key}`}
+                                    className={`text-sm cursor-pointer ${isDisabled ? 'text-muted-foreground' : ''}`}
+                                  >
+                                    {isCurrentlyChecked ? "Yes (Active)" : isDisabled ? "No (Deactivate current to enable)" : "No (Inactive)"}
+                                  </Label>
+                                </div>
+                              );
+                            })()
                           ) : (
                             <Input
                               value={String(fieldValue || "")}

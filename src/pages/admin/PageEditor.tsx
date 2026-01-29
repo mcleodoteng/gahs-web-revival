@@ -83,7 +83,16 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
   images: [
     { key: "src", label: "Image", type: "image", placeholder: "Image URL" },
     { key: "title", label: "Title", type: "text", placeholder: "Image title" },
-    { key: "category", label: "Category", type: "text", placeholder: "Category" },
+    { key: "category", label: "Category", type: "select", options: [
+      { label: "Conferences", value: "Conferences" },
+      { label: "Training Institutions", value: "Training Institutions" },
+      { label: "Central Medical Stores", value: "Central Medical Stores" },
+      { label: "Facilities", value: "Facilities" },
+      { label: "Events", value: "Events" },
+      { label: "Staff", value: "Staff" },
+      { label: "Community", value: "Community" },
+      { label: "Other", value: "Other" },
+    ]},
     { key: "description", label: "Description", type: "textarea", placeholder: "Image description..." },
   ],
   testimonials: [
@@ -191,6 +200,8 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
       { label: "Guidelines", value: "Guidelines" },
       { label: "Training Materials", value: "Training Materials" },
       { label: "Newsletters", value: "Newsletters" },
+      { label: "Scholarly Articles", value: "Scholarly Articles" },
+      { label: "Application for Ethical Clearance", value: "Application for Ethical Clearance" },
       { label: "Other", value: "Other" },
     ]},
     { key: "fileUrl", label: "PDF File", type: "file", placeholder: "Upload PDF document" },
@@ -891,6 +902,11 @@ const PageEditor = () => {
                           onChange={(newValue) => setEditFormData({ ...editFormData, [field.key]: newValue })}
                           fields={arrayFieldConfigs[fieldDef.arrayType] || []}
                           itemLabel={field.label.replace(/s$/, "")}
+                          exclusiveCheckboxField={
+                            (fieldDef.arrayType === "director_messages" || fieldDef.arrayType === "director_messages_full") 
+                              ? "isActive" 
+                              : undefined
+                          }
                         />
                       ) : field.type === "image" ? (
                         <ImageUploadField
