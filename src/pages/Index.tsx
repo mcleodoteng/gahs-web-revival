@@ -9,6 +9,7 @@ import { Affiliations } from "@/components/home/Affiliations";
 import { TestimonialsPreview } from "@/components/home/TestimonialsPreview";
 import { GalleryPreview } from "@/components/home/GalleryPreview";
 import { BlogPreview } from "@/components/home/BlogPreview";
+import { EventsPreview } from "@/components/home/EventsPreview";
 
 const Index = () => {
   return (
@@ -18,6 +19,7 @@ const Index = () => {
       <ServicesPreview />
       <InstitutionsPreview />
       <WhyChooseUs />
+      <EventsPreview />
       <BlogPreview />
       <GalleryPreview />
       <TestimonialsPreview />

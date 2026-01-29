@@ -14,6 +14,7 @@ import Portfolio from "./pages/Portfolio";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Gallery from "./pages/Gallery";
+import Events from "./pages/Events";
 import FormsAndPublications from "./pages/FormsAndPublications";
 import FormSubmission from "./pages/FormSubmission";
 import Testimonials from "./pages/Testimonials";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/forms-and-publications" element={<FormsAndPublications />} />
             <Route path="/form-submission" element={<FormSubmission />} />
             <Route path="/testimonials" element={<Testimonials />} />

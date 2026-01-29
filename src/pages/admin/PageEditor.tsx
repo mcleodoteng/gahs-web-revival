@@ -134,6 +134,50 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
     { key: "organization", label: "Organization", type: "text", placeholder: "SDA Church Ghana" },
     { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
   ],
+  upcoming_events: [
+    { key: "title", label: "Event Title", type: "text", placeholder: "Annual Health Conference 2025" },
+    { key: "description", label: "Description", type: "textarea", placeholder: "Event description..." },
+    { key: "date", label: "Date", type: "text", placeholder: "March 15, 2025" },
+    { key: "time", label: "Time", type: "text", placeholder: "9:00 AM - 5:00 PM" },
+    { key: "location", label: "Location", type: "text", placeholder: "Accra International Conference Centre" },
+    { key: "category", label: "Category", type: "select", options: [
+      { label: "Conference", value: "Conference" },
+      { label: "Seminar", value: "Seminar" },
+      { label: "Training", value: "Training" },
+      { label: "Outreach", value: "Outreach" },
+      { label: "Meeting", value: "Meeting" },
+      { label: "Celebration", value: "Celebration" },
+    ]},
+    { key: "image", label: "Event Image", type: "image", placeholder: "Image URL" },
+    { key: "registrationLink", label: "Registration Link", type: "text", placeholder: "https://..." },
+  ],
+  calendar_programs: [
+    { key: "name", label: "Program Name", type: "text", placeholder: "MGUC Health Week" },
+    { key: "month", label: "Month", type: "select", options: [
+      { label: "January", value: "January" },
+      { label: "February", value: "February" },
+      { label: "March", value: "March" },
+      { label: "April", value: "April" },
+      { label: "May", value: "May" },
+      { label: "June", value: "June" },
+      { label: "July", value: "July" },
+      { label: "August", value: "August" },
+      { label: "September", value: "September" },
+      { label: "October", value: "October" },
+      { label: "November", value: "November" },
+      { label: "December", value: "December" },
+    ]},
+    { key: "type", label: "Type", type: "select", options: [
+      { label: "Conference", value: "Conference" },
+      { label: "Seminar", value: "Seminar" },
+      { label: "Training", value: "Training" },
+      { label: "Outreach", value: "Outreach" },
+      { label: "Meeting", value: "Meeting" },
+      { label: "Celebration", value: "Celebration" },
+    ]},
+    { key: "description", label: "Description", type: "textarea", placeholder: "Brief description of the program" },
+    { key: "recurring", label: "Recurring Yearly", type: "checkbox" },
+  ],
   services: [
     { key: "icon", label: "Icon Name", type: "select", options: [
       { label: "Target", value: "Target" },
@@ -237,6 +281,10 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
       ],
       testimonials: [
         { label: "Testimonials", key: "testimonials", type: "array", arrayType: "testimonials" },
+      ],
+      events_preview: [
+        { label: "Title", key: "title", type: "text", placeholder: "Upcoming Events" },
+        { label: "Subtitle", key: "subtitle", type: "text", placeholder: "Section subtitle" },
       ],
     },
   },
@@ -454,6 +502,22 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Form Title", key: "formTitle", type: "text", placeholder: "Submit Your Forms" },
         { label: "Form Description", key: "formDescription", type: "textarea", placeholder: "Complete the form below..." },
         { label: "Unavailable Message", key: "unavailableMessage", type: "textarea", placeholder: "Form submission is currently unavailable..." },
+      ],
+    },
+  },
+  events: {
+    title: "Events Page",
+    fields: {
+      hero: [
+        { label: "Title", key: "title", type: "text", placeholder: "Events & Calendar" },
+        { label: "Subtitle", key: "subtitle", type: "textarea", placeholder: "Stay updated with upcoming events" },
+        { label: "Badge", key: "badge", type: "text", placeholder: "Events" },
+      ],
+      upcoming_events: [
+        { label: "Upcoming Events", key: "events", type: "array", arrayType: "upcoming_events" },
+      ],
+      yearly_calendar: [
+        { label: "Yearly Calendar Programs", key: "programs", type: "array", arrayType: "calendar_programs" },
       ],
     },
   },
