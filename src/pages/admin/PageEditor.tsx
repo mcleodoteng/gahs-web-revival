@@ -216,6 +216,7 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
       { label: "MCGUM", value: "MCGUM" },
       { label: "All Unions", value: "ALL UNIONS" },
     ]},
+    { key: "conference", label: "Conference", type: "text", placeholder: "e.g., MGUC Health Conference 2025" },
     { key: "type", label: "Type", type: "select", options: [
       { label: "Hospital", value: "Hospital" },
       { label: "Clinic", value: "Clinic" },
@@ -233,6 +234,12 @@ const arrayFieldConfigs: Record<string, ArrayFieldConfig[]> = {
     { key: "website", label: "Website URL", type: "text", placeholder: "https://www.hospital.org.gh" },
     { key: "image", label: "Facility Image", type: "image", placeholder: "Upload facility image" },
     { key: "services", label: "Services (comma-separated)", type: "textarea", placeholder: "General Medicine, Surgery, Maternity, Emergency Care" },
+  ],
+  outdoor_team: [
+    { key: "name", label: "Name", type: "text", placeholder: "John Doe" },
+    { key: "title", label: "Title/Role", type: "text", placeholder: "Field Officer" },
+    { key: "department", label: "Department/Area", type: "text", placeholder: "Community Outreach" },
+    { key: "image", label: "Photo", type: "image", placeholder: "Photo URL" },
   ],
   resources: [
     { key: "title", label: "Title", type: "text", placeholder: "GAHS Annual Report 2024" },
@@ -337,6 +344,11 @@ const pageConfig: Record<string, { title: string; fields: Record<string, { label
         { label: "Section Title", key: "sectionTitle", type: "text", placeholder: "Meet the GAHS Team" },
         { label: "Section Subtitle", key: "sectionSubtitle", type: "textarea", placeholder: "Team description" },
         { label: "Team Members", key: "members", type: "array", arrayType: "members" },
+      ],
+      outdoor_team: [
+        { label: "Section Title", key: "sectionTitle", type: "text", placeholder: "Our Outdoor Team" },
+        { label: "Section Subtitle", key: "sectionSubtitle", type: "textarea", placeholder: "Team description" },
+        { label: "Outdoor Team Members", key: "members", type: "array", arrayType: "outdoor_team" },
       ],
       quote: [
         { label: "Text", key: "text", type: "textarea", placeholder: "Quote text" },

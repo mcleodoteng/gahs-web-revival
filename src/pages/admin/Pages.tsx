@@ -10,7 +10,7 @@ const pages = [
     name: "Home", 
     slug: "home", 
     description: "Main landing page with hero carousel, director message, and previews",
-    sections: ["hero", "director_message", "services_preview", "institutions_preview", "why_choose_us", "mission_vision", "affiliations"]
+    sections: ["hero", "director_message", "services_preview", "events_preview", "institutions_preview", "why_choose_us", "mission_vision", "affiliations"]
   },
   { 
     name: "About", 
@@ -22,7 +22,7 @@ const pages = [
     name: "Leadership", 
     slug: "leadership", 
     description: "Director profile and team members",
-    sections: ["hero", "director", "team_members"]
+    sections: ["hero", "director", "team_members", "outdoor_team"]
   },
   { 
     name: "Services", 
@@ -31,10 +31,16 @@ const pages = [
     sections: ["hero", "services_list", "cta"]
   },
   { 
+    name: "Events", 
+    slug: "events", 
+    description: "Upcoming events and yearly calendar programs",
+    sections: ["hero", "upcoming_events", "yearly_calendar"]
+  },
+  { 
     name: "Institutions", 
     slug: "institutions", 
     description: "Healthcare facilities directory - hospitals, clinics, training",
-    sections: ["hero", "hospitals", "clinics", "polyclinics", "specialized", "training"]
+    sections: ["hero", "hospitals", "clinics", "polyclinics", "specialized", "training", "conferences"]
   },
   { 
     name: "Gallery", 

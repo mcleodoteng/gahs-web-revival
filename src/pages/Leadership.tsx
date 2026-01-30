@@ -57,6 +57,19 @@ interface TeamContent {
   members: TeamMember[];
 }
 
+interface OutdoorTeamMember {
+  name: string;
+  title: string;
+  department: string;
+  image: string;
+}
+
+interface OutdoorTeamContent {
+  sectionTitle: string;
+  sectionSubtitle: string;
+  members: OutdoorTeamMember[];
+}
+
 interface HeroContent {
   title: string;
   subtitle: string;
@@ -99,6 +112,13 @@ const defaultTeamMembers: TeamMember[] = [
   { name: "Edmond Adjei Boadu", title: "IT Manager", department: "Information Technology", image: edmondImage },
 ];
 
+const defaultOutdoorTeamMembers: OutdoorTeamMember[] = [
+  { name: "Emmanuel Kwarteng", title: "Regional Coordinator", department: "Ashanti Region", image: "" },
+  { name: "Grace Mensah", title: "Field Officer", department: "Community Outreach", image: "" },
+  { name: "Samuel Osei", title: "Health Educator", department: "Public Health", image: "" },
+  { name: "Abigail Boateng", title: "Mobile Clinic Coordinator", department: "Rural Health", image: "" },
+];
+
 const Leadership = () => {
   const { isLoading, getSection } = usePageContent("leadership");
 
@@ -125,6 +145,12 @@ const Leadership = () => {
     sectionTitle: "Meet the GAHS Secretariat Team",
     sectionSubtitle: "Dedicated professionals working together to advance healthcare across Ghana",
     members: defaultTeamMembers
+  })!;
+
+  const outdoorTeamContent = getSection<OutdoorTeamContent>("outdoor_team", {
+    sectionTitle: "Our Outdoor Team",
+    sectionSubtitle: "Field workers and community health professionals extending our reach across Ghana",
+    members: defaultOutdoorTeamMembers
   })!;
 
   const quoteContent = getSection<QuoteContent>("quote", {
@@ -154,6 +180,13 @@ const Leadership = () => {
     return "";
   };
 
+  const getOutdoorTeamMemberImage = (member: OutdoorTeamMember) => {
+    if (member.image && member.image.startsWith("http")) {
+      return member.image;
+    }
+    return "";
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -171,6 +204,7 @@ const Leadership = () => {
   }
 
   const teamMembers = teamContent.members || defaultTeamMembers;
+  const outdoorTeamMembers = outdoorTeamContent.members || defaultOutdoorTeamMembers;
 
   return (
     <Layout>
