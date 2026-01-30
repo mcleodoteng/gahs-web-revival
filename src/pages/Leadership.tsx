@@ -419,6 +419,56 @@ const Leadership = () => {
         </div>
       </section>
 
+      {/* Outdoor Team Section */}
+      <section className="py-16 md:py-24 bg-background">
+        <div className="container">
+          <div className="text-center mb-12">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">
+              Field Team
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
+              {outdoorTeamContent.sectionTitle}
+            </h2>
+            <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
+              {outdoorTeamContent.sectionSubtitle}
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {outdoorTeamMembers.map((member, index) => (
+              <Card key={index} className="border-0 shadow-card hover:shadow-elegant transition-shadow duration-300 group overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Photo */}
+                  <div className="aspect-square overflow-hidden bg-muted flex items-center justify-center">
+                    {getOutdoorTeamMemberImage(member) ? (
+                      <OptimizedImage
+                        src={getOutdoorTeamMemberImage(member)}
+                        alt={member.name}
+                        width={400}
+                        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                        containerClassName="w-full h-full"
+                        objectPosition="top"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-12 w-12 text-primary/40" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Info */}
+                  <div className="p-5 text-center">
+                    <h3 className="font-bold text-foreground text-lg leading-tight">{member.name}</h3>
+                    <p className="text-primary font-medium mt-1">{member.title}</p>
+                    <p className="text-muted-foreground text-sm mt-1">{member.department}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Quote Section */}
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="container">
