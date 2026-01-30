@@ -31,6 +31,7 @@ interface Institution {
   services?: string[] | string;
   image?: string;
   website?: string;
+  conference?: string;
 }
 
 // Helper to parse services from CMS (can be string or array)
@@ -620,6 +621,12 @@ const InstitutionsPage = () => {
                   <p>{selectedInstitution.location}</p>
                   <p>{selectedInstitution.region} Region</p>
                   <p>Union: {selectedInstitution.union}</p>
+                  {selectedInstitution.conference && (
+                    <p className="flex items-center gap-2">
+                      <Briefcase className="h-3.5 w-3.5 text-primary" />
+                      Conference: {selectedInstitution.conference}
+                    </p>
+                  )}
                 </div>
               </div>
 
