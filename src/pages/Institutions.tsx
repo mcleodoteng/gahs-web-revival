@@ -403,6 +403,11 @@ const InstitutionsPage = () => {
                       {getSortIcon("union")}
                     </div>
                   </th>
+                  <th>
+                    <div className="flex items-center gap-2">
+                      Conference
+                    </div>
+                  </th>
                   <th 
                     onClick={() => handleSort("type")}
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -436,6 +441,7 @@ const InstitutionsPage = () => {
                     </td>
                     <td className="text-muted-foreground">{institution.region}</td>
                     <td className="text-muted-foreground">{institution.union}</td>
+                    <td className="text-muted-foreground">{institution.conference || "—"}</td>
                     <td>
                       <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-light text-secondary">
                         {institution.type}
@@ -493,6 +499,7 @@ const InstitutionsPage = () => {
                     {institution.location}, {institution.region}
                   </p>
                   <p>Union: {institution.union}</p>
+                  {institution.conference && <p>Conference: {institution.conference}</p>}
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-light text-secondary">
