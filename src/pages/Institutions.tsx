@@ -64,7 +64,7 @@ const defaultTraining: Institution[] = [
   { name: "S.D.A. College of Health, Barekese", location: "Barekese", region: "Ashanti", union: "MGUC", type: "Training", status: "ACTIVE" },
 ];
 
-type SortField = "name" | "location" | "region" | "union" | "type" | "status";
+type SortField = "name" | "location" | "region" | "union" | "conference" | "type" | "status";
 type SortDirection = "asc" | "desc";
 
 // Get unique unions/conferences from institutions
@@ -176,8 +176,8 @@ const InstitutionsPage = () => {
 
     // Sort institutions
     institutions.sort((a, b) => {
-      const aValue = a[sortField].toLowerCase();
-      const bValue = b[sortField].toLowerCase();
+      const aValue = (a[sortField] || "").toLowerCase();
+      const bValue = (b[sortField] || "").toLowerCase();
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
@@ -403,9 +403,13 @@ const InstitutionsPage = () => {
                       {getSortIcon("union")}
                     </div>
                   </th>
-                  <th>
+                  <th 
+                    onClick={() => handleSort("conference")}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
                     <div className="flex items-center gap-2">
                       Conference
+                      {getSortIcon("conference")}
                     </div>
                   </th>
                   <th 
