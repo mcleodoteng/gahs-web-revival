@@ -81,6 +81,23 @@ const InstitutionsPage = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedUnion, setSelectedUnion] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleUnionChange = (union: string) => {
+    setSelectedUnion(union);
+    setCurrentPage(1);
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -249,7 +266,7 @@ const InstitutionsPage = () => {
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
@@ -269,7 +286,7 @@ const InstitutionsPage = () => {
                     <button
                       key={category.id}
                       onClick={() => {
-                        setActiveCategory(category.id);
+                        handleCategoryChange(category.id);
                         setMobileFiltersOpen(false);
                       }}
                       className={`filter-pill flex items-center gap-1.5 text-xs py-1.5 px-2.5 ${
@@ -289,8 +306,7 @@ const InstitutionsPage = () => {
                   <select
                     value={selectedUnion}
                     onChange={(e) => {
-                      setSelectedUnion(e.target.value);
-                      setCurrentPage(1);
+                      handleUnionChange(e.target.value);
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   >
@@ -311,7 +327,7 @@ const InstitutionsPage = () => {
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => handleCategoryChange(category.id)}
                   className={`filter-pill flex items-center gap-2 ${
                     activeCategory === category.id ? "active" : ""
                   }`}
@@ -328,8 +344,7 @@ const InstitutionsPage = () => {
               <select
                 value={selectedUnion}
                 onChange={(e) => {
-                  setSelectedUnion(e.target.value);
-                  setCurrentPage(1);
+                  handleUnionChange(e.target.value);
                 }}
                 className="px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
               >
@@ -344,7 +359,7 @@ const InstitutionsPage = () => {
                 type="text"
                 placeholder="Search by name, location, or region..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-80 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
