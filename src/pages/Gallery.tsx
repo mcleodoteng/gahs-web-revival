@@ -38,10 +38,13 @@ const defaultGalleryImages: GalleryImage[] = [
 
 const categories = ["All", "Hospitals", "Facilities", "Events", "Training", "Services", "Training Institutions", "Central Medical Stores"];
 
+const ITEMS_PER_PAGE = 20;
+
 const GalleryPage = () => {
   const { isLoading, getSection } = usePageContent("gallery");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const galleryContent = getSection<GalleryContent>("gallery_images", { images: defaultGalleryImages })!;
   const images = galleryContent.images || defaultGalleryImages;
@@ -50,10 +53,21 @@ const GalleryPage = () => {
     ? images 
     : images.filter(img => img.category === selectedCategory);
 
+  const totalPages = Math.ceil(filteredImages.length / ITEMS_PER_PAGE);
+  const paginatedImages = filteredImages.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
   const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
-  const nextImage = () => setLightboxIndex(prev => prev !== null ? (prev + 1) % filteredImages.length : null);
-  const prevImage = () => setLightboxIndex(prev => prev !== null ? (prev - 1 + filteredImages.length) % filteredImages.length : null);
+  const nextImage = () => setLightboxIndex(prev => prev !== null ? (prev + 1) % paginatedImages.length : null);
+  const prevImage = () => setLightboxIndex(prev => prev !== null ? (prev - 1 + paginatedImages.length) % paginatedImages.length : null);
 
   if (isLoading) {
     return (
@@ -86,7 +100,7 @@ const GalleryPage = () => {
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryChange(category)}
                 className="min-w-[100px]"
               >
                 {category}
@@ -100,7 +114,7 @@ const GalleryPage = () => {
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
           >
             <AnimatePresence>
-              {filteredImages.map((image, index) => (
+              {paginatedImages.map((image, index) => (
                 <motion.div
                   key={image.id}
                   layout
@@ -136,6 +150,43 @@ const GalleryPage = () => {
               ))}
             </AnimatePresence>
           </motion.div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-10">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -192,14 +243,14 @@ const GalleryPage = () => {
                 className="max-w-5xl max-h-[80vh] px-4 pointer-events-auto"
               >
                 <img
-                  src={filteredImages[lightboxIndex].src}
-                  alt={filteredImages[lightboxIndex].title}
+                  src={paginatedImages[lightboxIndex].src}
+                  alt={paginatedImages[lightboxIndex].title}
                   className="max-w-full max-h-[70vh] object-contain mx-auto"
                   loading="eager"
                 />
                 <div className="text-center mt-4">
-                  <p className="text-white text-xl font-semibold">{filteredImages[lightboxIndex].title}</p>
-                  <p className="text-white/70">{filteredImages[lightboxIndex].description}</p>
+                  <p className="text-white text-xl font-semibold">{paginatedImages[lightboxIndex].title}</p>
+                  <p className="text-white/70">{paginatedImages[lightboxIndex].description}</p>
                 </div>
               </motion.div>
             </motion.div>
