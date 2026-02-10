@@ -952,7 +952,7 @@ const PageEditor = () => {
 
         {/* Edit Dialog */}
         <Dialog open={!!editingSection} onOpenChange={(open) => !open && setEditingSection(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-3xl h-auto max-h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader>
               <DialogTitle>
                 Edit{" "}
