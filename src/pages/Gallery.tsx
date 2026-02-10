@@ -15,6 +15,7 @@ interface GalleryImage {
   title: string;
   category: string;
   description?: string;
+  createdAt?: string;
 }
 
 interface GalleryContent {
