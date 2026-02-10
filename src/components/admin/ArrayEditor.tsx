@@ -247,7 +247,7 @@ export const ArrayEditor = ({ value, onChange, fields, itemLabel = "Item", exclu
   };
 
   const addItem = () => {
-    const newItem: Record<string, unknown> = { id: String(Date.now()) };
+    const newItem: Record<string, unknown> = { id: String(Date.now()), createdAt: new Date().toISOString() };
     fields.forEach((field) => {
       if (field.type === "number") {
         newItem[field.key] = 0;

@@ -15,6 +15,7 @@ interface GalleryImage {
   title: string;
   category: string;
   description?: string;
+  createdAt?: string;
 }
 
 interface GalleryContent {
@@ -47,7 +48,15 @@ const GalleryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const galleryContent = getSection<GalleryContent>("gallery_images", { images: defaultGalleryImages })!;
-  const images = galleryContent.images || defaultGalleryImages;
+  const rawImages = galleryContent.images || defaultGalleryImages;
+
+  // Sort images by createdAt date (newest first), images without dates go last
+  const images = [...rawImages].sort((a, b) => {
+    if (!a.createdAt && !b.createdAt) return 0;
+    if (!a.createdAt) return 1;
+    if (!b.createdAt) return -1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const filteredImages = selectedCategory === "All" 
     ? images 
