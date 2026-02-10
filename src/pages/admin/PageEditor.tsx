@@ -964,7 +964,7 @@ const PageEditor = () => {
                 Update the content for this section.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4 space-y-6">
+            <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-2">
               {editingSection &&
                 config.fields[editingSection.section_key]?.map((field) => {
                   const fieldDef = field as { label: string; key: string; type: string; placeholder?: string; arrayType?: string };
